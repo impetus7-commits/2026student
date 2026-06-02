@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>고교학점제 관련 Q&amp;A 29</title>
+<style>
+  :root{
+    --bg:#EEF2F0; --card:#FFFFFF; --navy:#1A2C5B; --navy2:#2D5FA6;
+    --ink:#1F2937; --muted:#6B7280; --sage:#E2EBE6; --sborder:#C5D4CC;
+    --amber:#B45309; --amberbg:#FEF9C3; --hl:#FFE08A;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Malgun Gothic","맑은 고딕","Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    line-height:1.65; -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:880px; margin:0 auto; padding:28px 20px 80px;}
+  header.doc{
+    background:var(--navy); color:#fff; border-radius:14px;
+    padding:26px 28px; display:flex; align-items:center; gap:18px; margin-bottom:18px;
+  }
+  header.doc .emblem{width:64px;height:64px;border-radius:50%;background:#fff;flex:0 0 auto;object-fit:cover;}
+  header.doc h1{font-size:26px; margin:0 0 4px; letter-spacing:-.5px;}
+  header.doc p{margin:0; color:#CDD5E8; font-size:14px;}
+
+  .search{
+    position:sticky; top:0; z-index:5; background:var(--bg);
+    padding:8px 0 12px; margin-bottom:8px;
+  }
+  .search-box{
+    display:flex; align-items:center; gap:8px; background:var(--card);
+    border:2px solid var(--sborder); border-radius:999px; padding:10px 16px;
+    box-shadow:0 2px 8px rgba(26,44,91,.06);
+  }
+  .search-box:focus-within{border-color:var(--navy2);}
+  .search-box svg{width:18px;height:18px;flex:0 0 auto;fill:var(--muted);}
+  #q{border:0; outline:0; font-size:15px; flex:1; background:transparent; color:var(--ink); font-family:inherit;}
+  #clear{border:0;background:var(--sage);color:var(--navy);border-radius:999px;
+    width:24px;height:24px;cursor:pointer;font-size:14px;line-height:1;display:none;flex:0 0 auto;}
+  #count{font-size:12.5px;color:var(--muted);margin:8px 4px 0;}
+
+  .toc{
+    background:var(--card); border:1px solid var(--sborder); border-radius:12px;
+    padding:14px 16px; margin-bottom:24px; display:flex; flex-wrap:wrap; gap:8px;
+  }
+  .toc a{
+    text-decoration:none; color:var(--navy); background:var(--sage);
+    border:1px solid var(--sborder); border-radius:999px; padding:6px 12px;
+    font-size:13px; font-weight:600; white-space:nowrap; cursor:pointer;
+  }
+  .toc a:hover{background:#d6e2db;}
+  .note{font-size:13px; color:var(--muted); margin:0 2px 24px; padding-left:10px; border-left:3px solid var(--sborder);}
+  section.cat{margin-bottom:30px; scroll-margin-top:80px;}
+  .cat-title{
+    display:flex; align-items:center; gap:10px; font-size:19px; color:var(--navy);
+    margin:0 0 14px; padding-bottom:8px; border-bottom:2px solid var(--sborder);
+  }
+  .cat-bar{width:6px; height:20px; background:var(--navy2); border-radius:3px; flex:0 0 auto;}
+  article.qa{
+    background:var(--card); border:1px solid var(--sborder); border-radius:12px;
+    padding:16px 18px; margin-bottom:12px;
+  }
+  .q{margin:0 0 8px; font-size:16px; color:var(--navy); font-weight:700; line-height:1.5;}
+  .qno{color:var(--navy2);}
+  .a{margin:0; font-size:14.5px; color:var(--ink);}
+  .alabel{
+    display:inline-block; min-width:20px; height:20px; line-height:20px; text-align:center;
+    background:var(--amberbg); color:var(--amber); border-radius:5px; font-weight:700;
+    font-size:12px; margin-right:6px; padding:0 2px;
+  }
+  mark{background:var(--hl); color:inherit; padding:0 1px; border-radius:2px;}
+  .empty{display:none; text-align:center; color:var(--muted); padding:40px 10px; font-size:15px;}
+  #toTop{
+    position:fixed; right:22px; bottom:22px; z-index:20;
+    width:46px; height:46px; border:0; border-radius:50%;
+    background:var(--navy); color:#fff; cursor:pointer;
+    box-shadow:0 4px 12px rgba(26,44,91,.35);
+    opacity:0; pointer-events:none; transform:translateY(10px);
+    transition:opacity .25s, transform .25s; display:flex; align-items:center; justify-content:center;
+  }
+  #toTop.show{opacity:1; pointer-events:auto; transform:translateY(0);}
+  #toTop:hover{background:var(--navy2);}
+  #toTop svg{width:22px; height:22px; fill:#fff;}
+  footer{text-align:center; color:var(--muted); font-size:12px; margin-top:30px;}
+  @media (max-width:560px){
+    header.doc{flex-direction:column; text-align:center;}
+    header.doc h1{font-size:22px;}
+    .wrap{padding:18px 14px 60px;}
+  }
+  @media print{
+    body{background:#fff;}
+    .toc,.search{display:none;}
+    #toTop{display:none;}
+    header.doc{background:#fff; color:var(--navy); border:2px solid var(--navy); border-radius:0;}
+    header.doc p{color:var(--muted);}
+    article.qa{break-inside:avoid; page-break-inside:avoid; border-color:#ccc;}
+    section.cat{break-inside:avoid-page;}
+    a{color:var(--navy)!important; text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="doc">
+      <img class="emblem" src="data:image/jpeg;base64,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" alt="휘경여자고등학교 교표">
+      <div>
+        <h1>고교학점제 관련 Q&amp;A 29</h1>
+        <p>휘경여자고등학교 교육과정부</p>
+      </div>
+    </header>
+
+    <div class="search">
+      <div class="search-box">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+        <input id="q" type="search" placeholder="궁금한 내용을 검색해 보세요 (예: 5등급제, 전학, 융합)" autocomplete="off">
+        <button id="clear" title="지우기">×</button>
+      </div>
+      <div id="count"></div>
+    </div>
+
+    <nav class="toc"><a href="#c0" data-target="c0">1. 제도 전반</a><a href="#c1" data-target="c1">2. 평가·내신 (5등급제)</a><a href="#c2" data-target="c2">3. 이수·졸업·출결</a><a href="#c3" data-target="c3">4. 과목 선택 전략</a><a href="#c4" data-target="c4">5. 과목 개설·이동·전학</a><a href="#c5" data-target="c5">6. 대입 연계</a><a href="#c6" data-target="c6">7. 진로·학부모 역할·절차</a></nav>
+
+    <p class="note">※ 일반 기준에 따른 답변이며, 개설 과목·일정 등 세부사항은 우리 학교 교육과정 운영계획에 따라 달라질 수 있습니다.</p>
+
+    <section class="cat" id="c0">
+      <h2 class="cat-title"><span class="cat-bar"></span>1. 제도 전반</h2>
+      
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q1.</span> 고교학점제가 정확히 무엇인가요? 예전과 가장 큰 차이는요?</h3>
+        <p class="a"><span class="alabel">A</span> 대학생처럼 학생이 진로에 맞는 과목을 직접 골라 듣고, 정해진 192학점을 채우면 졸업하는 제도입니다. 예전에는 학교가 짜 준 시간표를 모두가 똑같이 들었지만, 이제는 &#x27;내가 설계하는 시간표&#x27;로 바뀝니다. 출석만 채우면 됐던 졸업이, 이제는 과목별 학점을 실제로 따야 하는 방식으로 달라진 점이 가장 큽니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q2.</span> 1학년인데 벌써 진로를 확실히 정해야 하나요?</h3>
+        <p class="a"><span class="alabel">A</span> 아닙니다. 완벽한 직업을 정하라는 제도가 아니라, 다양한 과목을 들어 보며 진로를 &#x27;탐색해 가는 과정&#x27;을 학교가 돕는 제도입니다. 1학년은 공통과목으로 기초를 다지면서 방향을 좁혀 가면 충분합니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q3.</span> 과목을 잘못 선택하면 되돌릴 수 없나요?</h3>
+        <p class="a"><span class="alabel">A</span> 선택 과정에 안전장치가 있습니다. 수요조사 → 수강신청 → 과목 변경 기간을 거쳐 확정되며, 그 사이 담임 선생님과 충분히 상담할 수 있습니다. 다만 최종 확정 이후에는 변경이 어려우므로, 신청 전에 신중히 정하는 것이 좋습니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q4.</span> 학생마다 시간표가 다르면, 우리 아이가 혼자 떠도는 건 아닌가요?</h3>
+        <p class="a"><span class="alabel">A</span> 공통과목(주로 1학년)은 학급 단위로 함께 듣고, 선택과목은 같은 과목을 고른 학생들이 모여 수업합니다. 오히려 &#x27;그 과목이 정말 필요해서 모인&#x27; 학생들과 함께 공부하게 되어 집중도와 만족도가 높아지는 경우가 많습니다.</p>
+      </article>
+    </section>
+    <section class="cat" id="c1">
+      <h2 class="cat-title"><span class="cat-bar"></span>2. 평가·내신 (5등급제)</h2>
+      
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q5.</span> 9등급제에서 5등급제로 바뀌면 내신이 쉬워지나요?</h3>
+        <p class="a"><span class="alabel">A</span> &#x27;쉬워진다&#x27;기보다 성적 유불리에 대한 부담이 줄어든다고 이해하시면 됩니다. 1등급이 상위 4%에서 상위 10%로 넓어져, 소수가 듣는 과목도 등급 걱정을 덜고 도전할 수 있게 됩니다. 시험 자체가 쉬워지는 것은 아닙니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q6.</span> 5등급제면 변별력이 없어 다 비슷해지지 않나요? 그럼 무엇으로 평가하나요?</h3>
+        <p class="a"><span class="alabel">A</span> 내신만의 변별력은 다소 줄어듭니다. 그래서 대학은 &#x27;무엇을, 끝까지 들었는가&#x27; — 진로에 맞는 과목을 충실히 이수했는지를 학교생활기록부(서류·면접, 학생부종합전형)로 더 꼼꼼히 봅니다. 어떤 과목을 선택했는지가 더 중요해졌습니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q7.</span> 성취도(A~E)와 석차등급(1~5)이 함께 표기된다는데 무슨 뜻인가요?</h3>
+        <p class="a"><span class="alabel">A</span> 원칙적으로 모든 과목에 절대평가 성취도(A~E)와 상대평가 석차등급(1~5)이 같이 적힙니다. &#x27;목표 수준에 도달했는가(A)&#x27;와 &#x27;전체에서 몇 등급인가&#x27;가 함께 보이는 것입니다. 남을 이기는 것보다 내가 목표한 성취기준(A)에 도달하는 것이 핵심입니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q8.</span> 인원이 적은 과목을 고르면 등급에서 불리하지 않나요?</h3>
+        <p class="a"><span class="alabel">A</span> 5등급제 완화로 그 부담이 크게 줄었습니다. 또 학생부종합전형에서는 인원이 적더라도 진로를 위해 도전적으로 이수한 과목을 오히려 높이 평가합니다. 등급이 무서워 진로 과목을 피하는 것이 더 손해일 수 있습니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q9.</span> 등급 없이 성취도만 나오는 과목도 있다던데, 어떤 과목인가요?</h3>
+        <p class="a"><span class="alabel">A</span> 체육·예술 교과, 과학탐구실험, 사회·과학 융합선택 일부 과목, 교양 교과(Pass/Fail) 등은 석차등급 없이 성취도만 표기됩니다. 내신 부담이 적은 과목이므로, 이 차이를 활용해 학습의 &#x27;강약&#x27;을 조절할 수 있습니다.</p>
+      </article>
+    </section>
+    <section class="cat" id="c2">
+      <h2 class="cat-title"><span class="cat-bar"></span>3. 이수·졸업·출결</h2>
+      
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q10.</span> 성적이 나쁘면 졸업을 못 하나요?</h3>
+        <p class="a"><span class="alabel">A</span> 학생을 떨어뜨리려는 제도가 아닙니다. 학점 취득 조건은 ① 과목 출석률 2/3 이상, ② 학업성취율 40% 이상 두 가지이며, 못 따라오는 학생은 학교가 끝까지 책임지고 보충합니다. 졸업을 막는 장치가 아니라 기초 학력을 지켜 주는 안전망입니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q11.</span> 학점을 못 채우면 어떻게 되나요? 보충은 어떻게 하나요?</h3>
+        <p class="a"><span class="alabel">A</span> &#x27;최소 성취수준 보장제&#x27;에 따라 단계적으로 지원합니다. 학기 중에는 미도달이 예상되는 학생을 선제적으로 방과후 지도·멘토링하고, 학기 말 미도달 발생 시 방학 중 보충 과정·대체 이수 프로그램을 제공합니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q12.</span> 한 번 미도달한 과목은 다시 들어야 하나요? (재이수)</h3>
+        <p class="a"><span class="alabel">A</span> 미도달이 곧 유급은 아닙니다. 우선 보충지도·방학 중 보충과정·대체 이수 등으로 최소 성취수준에 도달하도록 돕는 것이 원칙입니다. 재이수 운영 방식은 우리 학교 교육과정 운영계획에 따라 안내드립니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q13.</span> 결석이 잦으면 과목 이수에 어떤 영향이 있나요?</h3>
+        <p class="a"><span class="alabel">A</span> 학점 취득의 한 조건이 &#x27;과목별 출석률 2/3 이상&#x27;입니다. 특정 과목 결석이 잦으면 그 과목이 미이수가 될 수 있습니다. 질병·공결 등은 학교 규정에 따라 처리되므로, 평소 출결 관리가 중요합니다.</p>
+      </article>
+    </section>
+    <section class="cat" id="c3">
+      <h2 class="cat-title"><span class="cat-bar"></span>4. 과목 선택 전략</h2>
+      
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q14.</span> 점수 따기 쉬운 과목 위주로 고르면 안 되나요?</h3>
+        <p class="a"><span class="alabel">A</span> 권하지 않습니다. 진로와 무관하게 쉬운 과목만 고르면 학생부종합전형에서 오히려 불리할 수 있습니다. 핵심은 &#x27;유리한&#x27; 과목보다 &#x27;궁금한·필요한&#x27; 과목 — 대학은 &quot;왜 이 과목을 선택했는가&quot;라는 학생의 주도성과 스토리를 봅니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q15.</span> &#x27;위계(순서)를 지키라&#x27;는 말이 무슨 뜻인가요?</h3>
+        <p class="a"><span class="alabel">A</span> 과목에는 듣는 순서가 있다는 뜻입니다. 예를 들어 미적분Ⅰ(일반선택)을 들은 뒤 미적분Ⅱ(진로선택)로 넘어가는 것이 원칙입니다. 기초(뼈대) 과목 없이 심화로 바로 가면 수업을 따라가기 어렵습니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q16.</span> 문과인데 수학을, 이과인데 사회를 꼭 들어야 하나요?</h3>
+        <p class="a"><span class="alabel">A</span> 계열에 따라 &#x27;벽&#x27;이 다릅니다. 상경·사회계열은 확률과 통계가, 자연·공학계열은 미적분Ⅱ·기하·물리학 등이 사실상 필수에 가깝습니다. 인문계열은 특정 수학·과학을 강제하지 않는 대신 어학·역사·철학 등 관련 심화를 보여 주는 것이 중요합니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q17.</span> 융합선택이 새로 생겼다는데 꼭 들어야 하나요? 대입에 도움이 되나요?</h3>
+        <p class="a"><span class="alabel">A</span> 필수는 아니지만 권장됩니다. &#x27;기후변화와 환경생태&#x27;, &#x27;금융과 경제생활&#x27;처럼 실생활·교과 간 주제를 다뤄 학생의 주도성과 넓은 시야를 보여 주기 좋습니다. 다만 진로의 &#x27;깊이(전공 심화)&#x27;를 먼저 챙긴 뒤 융합으로 시야를 넓히는 순서를 권합니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q18.</span> 중간에 진로를 바꾸면 그동안 들은 과목이 불리하게 작용하나요?</h3>
+        <p class="a"><span class="alabel">A</span> 불리하지 않습니다. 진로 변경 자체보다 &#x27;왜 바꿨고, 그에 맞게 어떤 과목으로 채워 갔는가&#x27;의 흐름을 보여 주면 됩니다. 이미 들은 과목도 탐색의 과정으로서 의미가 있습니다.</p>
+      </article>
+    </section>
+    <section class="cat" id="c4">
+      <h2 class="cat-title"><span class="cat-bar"></span>5. 과목 개설·이동·전학</h2>
+      
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q19.</span> 아이가 듣고 싶은 과목이 우리 학교에 안 열리면 어쩌죠?</h3>
+        <p class="a"><span class="alabel">A</span> 학교는 수요조사를 반영해 최대한 개설하려 합니다. 인원·여건상 어려운 과목은 공동교육과정, 온라인 공동교육과정, 인근 거점학교 등을 통해 이수할 길을 안내합니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q20.</span> 공동교육과정·거점학교가 무엇인가요? 다른 학교 과목도 들을 수 있나요?</h3>
+        <p class="a"><span class="alabel">A</span> 여러 학교가 공동으로 과목을 개설해, 우리 학교에 없는 과목을 다른 학교(또는 거점학교)에서 듣고 학점으로 인정받는 제도입니다. 주로 방과후·주말·온라인으로 운영되며, 세부 운영은 지역·학교 계획에 따릅니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q21.</span> 신청 인원이 너무 적으면 과목이 폐강되나요?</h3>
+        <p class="a"><span class="alabel">A</span> 신청 인원이 기준에 못 미치면 개설이 어려울 수 있습니다. 이 경우 대체 과목 안내나 공동교육과정 연계로 이수를 돕습니다. 그래서 1·2지망을 함께 신중히 정해 두는 것이 좋습니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q22.</span> 전학을 오거나 가면, 들은 학점은 어떻게 되나요?</h3>
+        <p class="a"><span class="alabel">A</span> 전출·전입 시 이미 취득한 학점은 원칙적으로 인정됩니다. 학교 간 교육과정 차이로 생기는 미이수분은 보충·대체 이수로 채울 수 있도록 학교가 안내합니다(구체 처리는 전입 학교 계획에 따름).</p>
+      </article>
+    </section>
+    <section class="cat" id="c5">
+      <h2 class="cat-title"><span class="cat-bar"></span>6. 대입 연계</h2>
+      
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q23.</span> 진로·융합 과목은 수능에 안 나오는데 왜 듣나요?</h3>
+        <p class="a"><span class="alabel">A</span> 수능 직접 출제 범위는 아니지만, 전공 적합성과 탐구 역량을 보여 주는 학생부종합전형의 강력한 무기입니다. 수능은 공통·일반선택(국·수·영, 1학년 통합사회·통합과학)으로 대비하고, 진로·융합 과목으로 &#x27;나만의 생기부 스토리&#x27;를 완성하는 구조입니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q24.</span> 목표 대학·학과의 권장(필수) 과목은 어디서 확인하나요?</h3>
+        <p class="a"><span class="alabel">A</span> 목표하는 대학·학과 홈페이지의 &#x27;전공별 권장과목&#x27; 안내에서 확인할 수 있습니다(서울대 등 다수 대학이 공개). 수강신청 전에 미리 확인해 두시면 꼭 들어야 할 핵심 과목을 놓치지 않습니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q25.</span> 2028·2029 대입과 연결해 지금 가장 중요한 것은 무엇인가요?</h3>
+        <p class="a"><span class="alabel">A</span> 세 가지입니다. ① 수능 최저 충족을 위해 국·수·영 과목을 우선 배치하고, ② 1학년 통합사회·통합과학부터 수능 대비를 시작하며, ③ 2~3학년 진로·융합 과목으로 전공 스토리를 쌓는 것입니다. 끝까지 학업 분위기를 유지하는 &#x27;뒷심&#x27;이 핵심입니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q26.</span> 학교생활기록부에는 선택과목이 어떻게 기록되나요?</h3>
+        <p class="a"><span class="alabel">A</span> 선택과목은 과목명과 함께 성취도(A~E)·석차등급(해당 과목)·세부능력 및 특기사항(세특)이 기록됩니다. 진로·융합 과목에서의 탐구 활동이 세특으로 잘 드러나는 것이 학종에서 특히 중요합니다.</p>
+      </article>
+    </section>
+    <section class="cat" id="c6">
+      <h2 class="cat-title"><span class="cat-bar"></span>7. 진로·학부모 역할·절차</h2>
+      
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q27.</span> 부모로서 무엇을 도와주면 되나요? 저도 아이 진로를 잘 모르겠습니다.</h3>
+        <p class="a"><span class="alabel">A</span> 진로를 대신 정해 주실 필요는 없습니다. 가장 큰 도움은 아이의 &#x27;관심사&#x27;를 함께 이야기해 주시는 것입니다. 나머지 복잡한 부분은 설명회·가정통신문·담임 진로상담을 통해 학교가 함께합니다. 방향을 좁혀 가는 &#x27;과정&#x27;을 응원해 주세요.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q28.</span> 사교육을 더 시켜야 하나요? 학교 수업만으로 따라갈 수 있나요?</h3>
+        <p class="a"><span class="alabel">A</span> 학교 수업이 곧 수능·내신 대비가 되도록 설계되어 있습니다. 학교 수업과 보충지도, 진로상담을 충실히 활용하면 됩니다. 무리한 선행보다 위계에 맞는 단계 학습이 더 효과적입니다.</p>
+      </article>
+      <article class="qa">
+        <h3 class="q"><span class="qno">Q29.</span> 앞으로 일정은 어떻게 되며, 과목 선택 프로그램은 어떻게 사용하나요?</h3>
+        <p class="a"><span class="alabel">A</span> 설명회(6월) 이후 7월 수요조사 → 8월 수강신청 → 9월 최종 확정 순으로 진행됩니다. 과목 선택 프로그램은 &#x27;장바구니식 시간표 설계&#x27; 도구로, 학기별 과목을 색상 카드로 보고 담으면 규칙이 자동 검증되며, 완성한 시간표를 PDF로 출력할 수 있습니다. 자녀와 함께 미리 연습해 보시길 권합니다.</p>
+      </article>
+    </section>
+    <div class="empty" id="empty">검색 결과가 없습니다. 다른 단어로 검색해 보세요.</div>
+    <footer>휘경여자고등학교 · 총 29문항</footer>
+  </div>
+
+  <button id="toTop" title="맨 위로" aria-label="맨 위로">
+    <svg viewBox="0 0 24 24"><path d="M12 8l-6 6 1.4 1.4L12 10.8l4.6 4.6L18 14z"/></svg>
+  </button>
+
+<script>
+(function(){
+  document.querySelectorAll('.toc a').forEach(function(a){
+    a.addEventListener('click', function(e){
+      e.preventDefault();
+      var el=document.getElementById(a.getAttribute('data-target'));
+      if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+  });
+
+  var input=document.getElementById('q');
+  var clear=document.getElementById('clear');
+  var count=document.getElementById('count');
+  var empty=document.getElementById('empty');
+  var cats=Array.prototype.slice.call(document.querySelectorAll('section.cat'));
+  var arts=Array.prototype.slice.call(document.querySelectorAll('article.qa'));
+  var total=arts.length;
+
+  arts.forEach(function(ar){
+    ar._q=ar.querySelector('.q'); ar._a=ar.querySelector('.a');
+    ar._qhtml=ar._q.innerHTML; ar._ahtml=ar._a.innerHTML;
+    ar._text=ar.textContent.toLowerCase();
+  });
+
+  function hl(el, term){
+    var walker=document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    var nodes=[]; while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function(node){
+      var txt=node.nodeValue, low=txt.toLowerCase(), idx=low.indexOf(term);
+      if(idx===-1) return;
+      var frag=document.createDocumentFragment(), pos=0;
+      while(idx!==-1){
+        if(idx>pos) frag.appendChild(document.createTextNode(txt.slice(pos,idx)));
+        var m=document.createElement('mark'); m.textContent=txt.slice(idx,idx+term.length);
+        frag.appendChild(m); pos=idx+term.length; idx=low.indexOf(term,pos);
+      }
+      if(pos<txt.length) frag.appendChild(document.createTextNode(txt.slice(pos)));
+      node.parentNode.replaceChild(frag,node);
+    });
+  }
+
+  function apply(){
+    var term=input.value.trim().toLowerCase();
+    clear.style.display=term?'block':'none';
+    var shown=0;
+    arts.forEach(function(ar){
+      var hit=!term||ar._text.indexOf(term)!==-1;
+      ar.style.display=hit?'':'none';
+      ar._q.innerHTML=ar._qhtml; ar._a.innerHTML=ar._ahtml;
+      if(hit&&term){ hl(ar._q,term); hl(ar._a,term); }
+      if(hit) shown++;
+    });
+    cats.forEach(function(c){
+      var vis=0; Array.prototype.forEach.call(c.querySelectorAll('article.qa'),function(a){ if(a.style.display!=='none') vis++; });
+      c.style.display=vis?'':'none';
+    });
+    empty.style.display=shown?'none':'block';
+    count.textContent=term?('검색 결과 '+shown+'문항'):('전체 '+total+'문항');
+  }
+  input.addEventListener('input',apply);
+  clear.addEventListener('click',function(){ input.value=''; apply(); input.focus(); });
+  apply();
+
+  // 맨 위로 버튼: 스크롤 위치에 따라 표시/숨김
+  var toTop=document.getElementById('toTop');
+  function onScroll(){
+    if(window.scrollY>400) toTop.classList.add('show');
+    else toTop.classList.remove('show');
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  toTop.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+  onScroll();
+})();
+</script>
+</body>
+</html>
