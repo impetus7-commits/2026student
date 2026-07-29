@@ -144,6 +144,7 @@ footer{max-width:1400px;margin:0 auto;padding:0 24px 40px;font-size:11.5px;color
   <button data-tab="subjects" class="on">① 과목·분반 설정</button>
   <button data-tab="teachers">② 교사 배정</button>
   <button data-tab="summary">③ 요약·검증</button>
+  <button data-tab="macro">④ 거시편성</button>
 </div>
 <div class="groupbar" id="groupbar"></div>
 </nav>
@@ -151,6 +152,7 @@ footer{max-width:1400px;margin:0 auto;padding:0 24px 40px;font-size:11.5px;color
   <div id="tab-subjects"></div>
   <div id="tab-teachers" style="display:none"></div>
   <div id="tab-summary" style="display:none"></div>
+  <div id="tab-macro" style="display:none"></div>
 </main>
 <footer>
   ※ 지정과목은 전교생(1~9반)이 수강하는 것으로 계산합니다(분반수 = 학급수 9, 수동 조정 가능).
@@ -158,9 +160,9 @@ footer{max-width:1400px;margin:0 auto;padding:0 24px 40px;font-size:11.5px;color
   필요시수 = 학점(주당시간) × 분반수. 모든 변경사항은 브라우저(localStorage)에 자동 저장됩니다.
 </footer>
 <script>
-const DATA = {"classCount":9,"defaultCapacity":28,"students":{"1":null,"2":222,"3":193},"teachers":[{"id":"t1","group":"국어","name":"정미영","note":""},{"id":"t2","group":"국어","name":"문영선","note":""},{"id":"t3","group":"국어","name":"이윤희","note":""},{"id":"t4","group":"국어","name":"최민준","note":""},{"id":"t5","group":"국어","name":"윤효영","note":""},{"id":"t6","group":"국어","name":"안효섭","note":""},{"id":"t7","group":"국어","name":"김미경","note":""},{"id":"t8","group":"수학","name":"강은정","note":""},{"id":"t9","group":"수학","name":"김선빈","note":""},{"id":"t10","group":"수학","name":"강수아","note":"학습부장"},{"id":"t11","group":"수학","name":"김현정","note":""},{"id":"t12","group":"수학","name":"정효화","note":"교무부장"},{"id":"t13","group":"수학","name":"이성호1","note":"과정부장"},{"id":"t14","group":"수학","name":"이민호","note":""},{"id":"t15","group":"수학","name":"김은영","note":"창체부장"},{"id":"t16","group":"수학","name":"모상우","note":""},{"id":"t17","group":"수학","name":"문형주","note":""},{"id":"t18","group":"영어","name":"문승규","note":"연구부장"},{"id":"t19","group":"영어","name":"양효정","note":"상담부장"},{"id":"t20","group":"영어","name":"강시주","note":""},{"id":"t21","group":"영어","name":"강명근","note":""},{"id":"t22","group":"영어","name":"손서영","note":""},{"id":"t23","group":"영어","name":"하재원","note":""},{"id":"t24","group":"영어","name":"박정현","note":""},{"id":"t25","group":"과학","name":"권보경","note":""},{"id":"t26","group":"과학","name":"안현준","note":""},{"id":"t27","group":"과학","name":"임윤진","note":"중점부장"},{"id":"t28","group":"과학","name":"최영심","note":""},{"id":"t29","group":"과학","name":"추교찬","note":""},{"id":"t30","group":"과학","name":"화기1","note":""},{"id":"t31","group":"과학","name":"최범선","note":""},{"id":"t32","group":"과학","name":"최우혁","note":""},{"id":"t33","group":"과학","name":"장병천","note":""},{"id":"t34","group":"사회","name":"이봉재","note":""},{"id":"t35","group":"사회","name":"박석환","note":"진학부장"},{"id":"t36","group":"사회","name":"성문경","note":""},{"id":"t37","group":"사회","name":"배태준","note":""},{"id":"t38","group":"사회","name":"오정현","note":""},{"id":"t39","group":"사회","name":"서재호","note":"학년부장"},{"id":"t40","group":"사회","name":"김민준","note":""},{"id":"t41","group":"사회","name":"손영찬","note":""},{"id":"t42","group":"사회","name":"조재용","note":""},{"id":"t43","group":"사회","name":"최동혁","note":""},{"id":"t44","group":"사회","name":"김종필","note":""},{"id":"t45","group":"사회","name":"안상규","note":""},{"id":"t46","group":"예체","name":"이성호2","note":""},{"id":"t47","group":"예체","name":"배정임","note":"생활부장"},{"id":"t48","group":"예체","name":"홍명환","note":""},{"id":"t49","group":"예체","name":"이혜경","note":""},{"id":"t50","group":"예체","name":"이형준","note":""},{"id":"t51","group":"예체","name":"홍보라","note":""},{"id":"t52","group":"예체","name":"김홍범","note":""},{"id":"t53","group":"제2외/한문","name":"이병순","note":"한문 담당"},{"id":"t54","group":"제2외/한문","name":"전소영","note":"일본어 담당"},{"id":"t55","group":"제2외/한문","name":"이정연","note":"중국어 담당"},{"id":"t56","group":"정보","name":"강한우","note":"정보 담당"},{"id":"t57","group":"기타","name":"조혜원","note":"기타 시트에서 자동 추가"},{"id":"t58","group":"기타","name":"김미소","note":"기타 시트에서 자동 추가"},{"id":"t59","group":"기타","name":"신민주","note":"기타 시트에서 자동 추가"},{"id":"t60","group":"기타","name":"강지수","note":"기타 시트에서 자동 추가"}],"subjects":[{"id":"s1","name":"공통국어1","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s2","name":"공통국어2","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s3","name":"공통수학1","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s4","name":"공통수학2","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s5","name":"공통영어1","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s6","name":"공통영어2","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s7","name":"한국사1","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s8","name":"한국사2","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s9","name":"통합사회1","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s10","name":"통합사회2","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s11","name":"통합과학1","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s12","name":"통합과학2","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s13","name":"과학탐구실험1","credit":1.0,"kwGroup":"과학","tGroup":"과학","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s14","name":"과학탐구실험2","credit":1.0,"kwGroup":"과학","tGroup":"과학","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s15","name":"체육1","credit":2.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s16","name":"체육2","credit":2.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s17","name":"음악/미술","credit":2.0,"kwGroup":"예술","tGroup":"예체","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s18","name":"음악/미술","credit":2.0,"kwGroup":"예술","tGroup":"예체","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s19","name":"진로·직업 탐구","credit":1.0,"kwGroup":"교양","tGroup":"교양","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s20","name":"진로·학업 설계","credit":1.0,"kwGroup":"교양","tGroup":"교양","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s21","name":"문학","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"지정","sem":1,"grade":2,"count":null,"selGroup":null},{"id":"s22","name":"화법과 언어","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"지정","sem":2,"grade":2,"count":null,"selGroup":null},{"id":"s23","name":"대수","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"지정","sem":1,"grade":2,"count":null,"selGroup":null},{"id":"s24","name":"미적분 I","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"지정","sem":2,"grade":2,"count":null,"selGroup":null},{"id":"s25","name":"영어 I","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"지정","sem":1,"grade":2,"count":null,"selGroup":null},{"id":"s26","name":"영어Ⅱ","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"지정","sem":2,"grade":2,"count":null,"selGroup":null},{"id":"s27","name":"스포츠 생활1","credit":2.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":1,"grade":2,"count":null,"selGroup":null},{"id":"s28","name":"스포츠 생활2","credit":2.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":2,"grade":2,"count":null,"selGroup":null},{"id":"s29","name":"독서와 작문","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"지정","sem":1,"grade":3,"count":null,"selGroup":null},{"id":"s30","name":"확률과 통계","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"지정","sem":1,"grade":3,"count":null,"selGroup":null},{"id":"s31","name":"영어 독해와 작문","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"지정","sem":1,"grade":3,"count":null,"selGroup":null},{"id":"s32","name":"스포츠 과학","credit":1.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":1,"grade":3,"count":null,"selGroup":null},{"id":"s33","name":"스포츠 문화","credit":1.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":2,"grade":3,"count":null,"selGroup":null},{"id":"s34","name":"주제 탐구 독서","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":1,"grade":2,"count":59,"selGroup":"A"},{"id":"s35","name":"수학과 문화","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":1,"grade":2,"count":9,"selGroup":"A"},{"id":"s36","name":"인공지능 수학","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":1,"grade":2,"count":32,"selGroup":"A"},{"id":"s37","name":"실생활 영어 회화","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":1,"grade":2,"count":30,"selGroup":"A"},{"id":"s38","name":"영미 문학 읽기","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":1,"grade":2,"count":7,"selGroup":"A"},{"id":"s39","name":"사회와 문화","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":2,"count":106,"selGroup":"A"},{"id":"s40","name":"세계사","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":2,"count":28,"selGroup":"A"},{"id":"s41","name":"세계시민과 지리","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":2,"count":23,"selGroup":"A"},{"id":"s42","name":"현대사회와 윤리","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":2,"count":111,"selGroup":"A"},{"id":"s43","name":"물리학","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":2,"count":52,"selGroup":"A"},{"id":"s44","name":"생명과학","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":2,"count":90,"selGroup":"A"},{"id":"s45","name":"지구과학","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":2,"count":15,"selGroup":"A"},{"id":"s46","name":"화학","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":2,"count":95,"selGroup":"A"},{"id":"s47","name":"정보","credit":3.0,"kwGroup":"기술·가정/정보","tGroup":"정보","kind":"선택","sem":1,"grade":2,"count":75,"selGroup":"C"},{"id":"s48","name":"일본어","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":2,"count":62,"selGroup":"C"},{"id":"s49","name":"중국어","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":2,"count":38,"selGroup":"C"},{"id":"s50","name":"한문","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":2,"count":44,"selGroup":"C"},{"id":"s51","name":"독서 토론과 글쓰기","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":2,"grade":2,"count":50,"selGroup":"B"},{"id":"s52","name":"기하","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":2,"grade":2,"count":75,"selGroup":"B"},{"id":"s53","name":"수학과제 탐구","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":2,"grade":2,"count":9,"selGroup":"B"},{"id":"s54","name":"미디어 영어","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":2,"grade":2,"count":30,"selGroup":"B"},{"id":"s55","name":"영어 발표와 토론","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":2,"grade":2,"count":15,"selGroup":"B"},{"id":"s56","name":"동아시아 역사 기행","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":2,"count":42,"selGroup":"B"},{"id":"s57","name":"윤리와 사상","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":2,"count":118,"selGroup":"B"},{"id":"s58","name":"정치","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":2,"count":63,"selGroup":"B"},{"id":"s59","name":"한국지리 탐구","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":2,"count":33,"selGroup":"B"},{"id":"s60","name":"물질과 에너지","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":2,"count":90,"selGroup":"B"},{"id":"s61","name":"세포와 물질대사","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":2,"count":86,"selGroup":"B"},{"id":"s62","name":"역학과 에너지","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":2,"count":33,"selGroup":"B"},{"id":"s63","name":"행성우주과학","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":2,"count":13,"selGroup":"B"},{"id":"s64","name":"정보","credit":3.0,"kwGroup":"기술·가정/정보","tGroup":"정보","kind":"선택","sem":2,"grade":2,"count":63,"selGroup":"C"},{"id":"s65","name":"일본어","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":2,"count":65,"selGroup":"C"},{"id":"s66","name":"중국어","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":2,"count":45,"selGroup":"C"},{"id":"s67","name":"한문","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":2,"count":46,"selGroup":"C"},{"id":"s68","name":"문학과 영상","credit":3.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":1,"grade":3,"count":35,"selGroup":"D"},{"id":"s69","name":"언어생활 탐구","credit":3.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":1,"grade":3,"count":21,"selGroup":"D"},{"id":"s70","name":"경제 수학","credit":3.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":1,"grade":3,"count":2,"selGroup":"D"},{"id":"s71","name":"미적분Ⅱ","credit":3.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":1,"grade":3,"count":74,"selGroup":"D"},{"id":"s72","name":"세계 문화와 영어","credit":3.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":1,"grade":3,"count":18,"selGroup":"D"},{"id":"s73","name":"심화 영어","credit":3.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":1,"grade":3,"count":1,"selGroup":"D"},{"id":"s74","name":"경제","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":3,"count":34,"selGroup":"D"},{"id":"s75","name":"도시의 미래 탐구","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":3,"count":29,"selGroup":"D"},{"id":"s76","name":"법과 사회","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":3,"count":68,"selGroup":"D"},{"id":"s77","name":"역사로 탐구하는 현대 세계","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":3,"count":47,"selGroup":"D"},{"id":"s78","name":"인문학과 윤리","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":3,"count":69,"selGroup":"D"},{"id":"s79","name":"생물의 유전","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":3,"count":48,"selGroup":"D"},{"id":"s80","name":"전자기와 양자","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":3,"count":40,"selGroup":"D"},{"id":"s81","name":"지구시스템과학","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":3,"count":9,"selGroup":"D"},{"id":"s82","name":"화학 반응의 세계","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":3,"count":72,"selGroup":"D"},{"id":"s83","name":"운동과 건강","credit":3.0,"kwGroup":"체육","tGroup":"예체","kind":"선택","sem":1,"grade":3,"count":9,"selGroup":"D"},{"id":"s84","name":"미술 감상과 비평","credit":3.0,"kwGroup":"예술","tGroup":"예체","kind":"선택","sem":1,"grade":3,"count":108,"selGroup":"E"},{"id":"s85","name":"음악 감상과 비평","credit":3.0,"kwGroup":"예술","tGroup":"예체","kind":"선택","sem":1,"grade":3,"count":84,"selGroup":"E"},{"id":"s86","name":"인공지능 기초","credit":4.0,"kwGroup":"기술·가정/정보","tGroup":"정보","kind":"선택","sem":1,"grade":3,"count":50,"selGroup":"F"},{"id":"s87","name":"언어생활과 한자","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":3,"count":11,"selGroup":"F"},{"id":"s88","name":"일본어 회화","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":3,"count":39,"selGroup":"F"},{"id":"s89","name":"중국어 회화","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":3,"count":13,"selGroup":"F"},{"id":"s90","name":"교육의 이해","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":1,"grade":3,"count":26,"selGroup":"F"},{"id":"s91","name":"논리와 사고","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":1,"grade":3,"count":38,"selGroup":"F"},{"id":"s92","name":"생태와 환경","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":1,"grade":3,"count":15,"selGroup":"F"},{"id":"s93","name":"매체 의사소통","credit":3.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":2,"grade":3,"count":149,"selGroup":"G"},{"id":"s94","name":"직무 의사소통","credit":3.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":2,"grade":3,"count":43,"selGroup":"G"},{"id":"s95","name":"실용 통계","credit":3.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":2,"grade":3,"count":152,"selGroup":"G"},{"id":"s96","name":"직무 수학","credit":3.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":2,"grade":3,"count":40,"selGroup":"G"},{"id":"s97","name":"심화 영어 독해와 작문","credit":3.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":2,"grade":3,"count":88,"selGroup":"G"},{"id":"s98","name":"직무 영어","credit":3.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":2,"grade":3,"count":104,"selGroup":"G"},{"id":"s99","name":"금융과 경제생활","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":3,"count":73,"selGroup":"G"},{"id":"s100","name":"기후변화와 지속가능한 세계","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":3,"count":91,"selGroup":"G"},{"id":"s101","name":"사회문제 탐구","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":3,"count":135,"selGroup":"G"},{"id":"s102","name":"여행지리","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":3,"count":55,"selGroup":"G"},{"id":"s103","name":"윤리문제 탐구","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":3,"count":123,"selGroup":"G"},{"id":"s104","name":"과학의 역사와 문화","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":3,"count":82,"selGroup":"G"},{"id":"s105","name":"기후변화와 환경생태","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":3,"count":78,"selGroup":"G"},{"id":"s106","name":"융합과학 탐구","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":3,"count":83,"selGroup":"G"},{"id":"s107","name":"운동과 건강","credit":3.0,"kwGroup":"체육","tGroup":"예체","kind":"선택","sem":2,"grade":3,"count":48,"selGroup":"G"},{"id":"s108","name":"미술과 매체","credit":3.0,"kwGroup":"예술","tGroup":"예체","kind":"선택","sem":2,"grade":3,"count":94,"selGroup":"H"},{"id":"s109","name":"음악과 미디어","credit":3.0,"kwGroup":"예술","tGroup":"예체","kind":"선택","sem":2,"grade":3,"count":98,"selGroup":"H"},{"id":"s110","name":"일본 문화","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":3,"count":33,"selGroup":"I"},{"id":"s111","name":"중국 문화","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":3,"count":22,"selGroup":"I"},{"id":"s112","name":"한문 고전 읽기","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":3,"count":7,"selGroup":"I"},{"id":"s113","name":"삶과 종교","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":2,"grade":3,"count":4,"selGroup":"I"},{"id":"s114","name":"인간과 경제활동","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":2,"grade":3,"count":27,"selGroup":"I"},{"id":"s115","name":"인간과 심리","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":2,"grade":3,"count":78,"selGroup":"I"},{"id":"s116","name":"인간과 철학","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":2,"grade":3,"count":21,"selGroup":"I"}],"extrasSeed":[{"id":"x1","grade":1,"name":"창체1(자율-상담사서보건)","hours":3,"teacherId":"t57","reason":"상담"},{"id":"x2","grade":1,"name":"창체1(자율-상담사서보건)","hours":3,"teacherId":"t58","reason":"보건"},{"id":"x3","grade":1,"name":"창체1(자율-상담사서보건)","hours":3,"teacherId":"t59","reason":"사서"},{"id":"x4","grade":1,"name":"기타2(책 한권 읽기)","hours":1,"teacherId":"t1","reason":"1학년 국어 담당"},{"id":"x5","grade":1,"name":"기타2(책 한권 읽기)","hours":1,"teacherId":"t5","reason":"1학년 국어 담당"},{"id":"x6","grade":1,"name":"기타2(책 한권 읽기)","hours":1,"teacherId":"t6","reason":"1학년 국어 담당"},{"id":"x7","grade":2,"name":"기타3(국제이해)","hours":4,"teacherId":"t54","reason":"일본어"},{"id":"x8","grade":2,"name":"기타3(국제이해)","hours":5,"teacherId":"t55","reason":"중국어"},{"id":"x9","grade":2,"name":"기타4(민주시민,환경)","hours":1,"teacherId":"","reason":""},{"id":"x10","grade":2,"name":"기타4(민주시민,환경)","hours":1,"teacherId":"","reason":""},{"id":"x11","grade":2,"name":"기타4(민주시민,환경)","hours":1,"teacherId":"","reason":""},{"id":"x12","grade":3,"name":"창체3(영어과)","hours":3,"teacherId":"t18","reason":"영어수업"},{"id":"x13","grade":3,"name":"창체3(영어과)","hours":7,"teacherId":"t60","reason":"영어수업"},{"id":"x14","grade":3,"name":"기타5(자기주도학습)","hours":1,"teacherId":"t53","reason":""},{"id":"x15","grade":3,"name":"기타5(자기주도학습)","hours":1,"teacherId":"t54","reason":""},{"id":"x16","grade":3,"name":"기타5(자기주도학습)","hours":1,"teacherId":"","reason":""},{"id":"x17","grade":3,"name":"기타6(진학정보)","hours":3,"teacherId":"","reason":""},{"id":"x18","grade":3,"name":"창체4(직업반-자율)","hours":1,"teacherId":"t54","reason":""},{"id":"x19","grade":3,"name":"창체5(직업반-진로)","hours":1,"teacherId":"t55","reason":""}]};
-const LS_KEY = 'sisu2027_v2';
-const BASE_GROUPS = ['국어','수학','영어','과학','사회','예체','제2외/한문','정보','교양','기타'];
+const DATA = {"classCount":9,"defaultCapacity":28,"students":{"1":null,"2":222,"3":193},"teachers":[{"id":"t1","group":"국어","name":"정미영","note":""},{"id":"t2","group":"국어","name":"문영선","note":""},{"id":"t3","group":"국어","name":"이윤희","note":""},{"id":"t4","group":"국어","name":"최민준","note":""},{"id":"t5","group":"국어","name":"윤효영","note":""},{"id":"t6","group":"국어","name":"안효섭","note":""},{"id":"t7","group":"국어","name":"김미경","note":""},{"id":"t8","group":"수학","name":"강은정","note":""},{"id":"t9","group":"수학","name":"김선빈","note":""},{"id":"t10","group":"수학","name":"강수아","note":"학습부장"},{"id":"t11","group":"수학","name":"김현정","note":""},{"id":"t12","group":"수학","name":"정효화","note":"교무부장"},{"id":"t13","group":"수학","name":"이성호1","note":"과정부장"},{"id":"t14","group":"수학","name":"이민호","note":""},{"id":"t15","group":"수학","name":"김은영","note":"창체부장"},{"id":"t16","group":"수학","name":"모상우","note":""},{"id":"t17","group":"수학","name":"문형주","note":""},{"id":"t18","group":"영어","name":"문승규","note":"연구부장"},{"id":"t19","group":"영어","name":"양효정","note":"상담부장"},{"id":"t20","group":"영어","name":"강시주","note":""},{"id":"t21","group":"영어","name":"강명근","note":""},{"id":"t22","group":"영어","name":"손서영","note":""},{"id":"t23","group":"영어","name":"하재원","note":""},{"id":"t24","group":"영어","name":"박정현","note":""},{"id":"t25","group":"과학","name":"권보경","note":""},{"id":"t26","group":"과학","name":"안현준","note":""},{"id":"t27","group":"과학","name":"임윤진","note":"중점부장"},{"id":"t28","group":"과학","name":"최영심","note":""},{"id":"t29","group":"과학","name":"추교찬","note":""},{"id":"t30","group":"과학","name":"화기1","note":""},{"id":"t31","group":"과학","name":"최범선","note":""},{"id":"t32","group":"과학","name":"최우혁","note":""},{"id":"t33","group":"과학","name":"장병천","note":""},{"id":"t34","group":"사회","name":"이봉재","note":""},{"id":"t35","group":"사회","name":"박석환","note":"진학부장"},{"id":"t36","group":"사회","name":"성문경","note":""},{"id":"t37","group":"사회","name":"배태준","note":""},{"id":"t38","group":"사회","name":"오정현","note":""},{"id":"t39","group":"사회","name":"서재호","note":"학년부장"},{"id":"t40","group":"사회","name":"김민준","note":""},{"id":"t41","group":"사회","name":"손영찬","note":""},{"id":"t42","group":"사회","name":"조재용","note":""},{"id":"t43","group":"사회","name":"최동혁","note":""},{"id":"t44","group":"사회","name":"김종필","note":""},{"id":"t45","group":"사회","name":"안상규","note":""},{"id":"t46","group":"예체","name":"이성호2","note":""},{"id":"t47","group":"예체","name":"배정임","note":"생활부장"},{"id":"t48","group":"예체","name":"홍명환","note":""},{"id":"t49","group":"예체","name":"이혜경","note":""},{"id":"t50","group":"예체","name":"이형준","note":""},{"id":"t51","group":"예체","name":"홍보라","note":""},{"id":"t52","group":"예체","name":"김홍범","note":""},{"id":"t53","group":"제2외/한문","name":"이병순","note":"한문 담당"},{"id":"t54","group":"제2외/한문","name":"전소영","note":"일본어 담당"},{"id":"t55","group":"제2외/한문","name":"이정연","note":"중국어 담당"},{"id":"t56","group":"정보","name":"강한우","note":"정보 담당"},{"id":"t57","group":"창체","name":"조혜원","note":"기타 시트에서 자동 추가"},{"id":"t58","group":"창체","name":"김미소","note":"기타 시트에서 자동 추가"},{"id":"t59","group":"창체","name":"신민주","note":"기타 시트에서 자동 추가"},{"id":"t60","group":"창체","name":"강지수","note":"기타 시트에서 자동 추가"}],"subjects":[{"id":"s1","name":"공통국어1","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s2","name":"공통국어2","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s3","name":"공통수학1","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s4","name":"공통수학2","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s5","name":"공통영어1","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s6","name":"공통영어2","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s7","name":"한국사1","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s8","name":"한국사2","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s9","name":"통합사회1","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s10","name":"통합사회2","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s11","name":"통합과학1","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s12","name":"통합과학2","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s13","name":"과학탐구실험1","credit":1.0,"kwGroup":"과학","tGroup":"과학","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s14","name":"과학탐구실험2","credit":1.0,"kwGroup":"과학","tGroup":"과학","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s15","name":"체육1","credit":2.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s16","name":"체육2","credit":2.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s17","name":"음악/미술","credit":2.0,"kwGroup":"예술","tGroup":"예체","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s18","name":"음악/미술","credit":2.0,"kwGroup":"예술","tGroup":"예체","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s19","name":"진로·직업 탐구","credit":1.0,"kwGroup":"교양","tGroup":"교양","kind":"지정","sem":1,"grade":1,"count":null,"selGroup":null},{"id":"s20","name":"진로·학업 설계","credit":1.0,"kwGroup":"교양","tGroup":"교양","kind":"지정","sem":2,"grade":1,"count":null,"selGroup":null},{"id":"s21","name":"문학","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"지정","sem":1,"grade":2,"count":null,"selGroup":null},{"id":"s22","name":"화법과 언어","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"지정","sem":2,"grade":2,"count":null,"selGroup":null},{"id":"s23","name":"대수","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"지정","sem":1,"grade":2,"count":null,"selGroup":null},{"id":"s24","name":"미적분 I","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"지정","sem":2,"grade":2,"count":null,"selGroup":null},{"id":"s25","name":"영어 I","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"지정","sem":1,"grade":2,"count":null,"selGroup":null},{"id":"s26","name":"영어Ⅱ","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"지정","sem":2,"grade":2,"count":null,"selGroup":null},{"id":"s27","name":"스포츠 생활1","credit":2.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":1,"grade":2,"count":null,"selGroup":null},{"id":"s28","name":"스포츠 생활2","credit":2.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":2,"grade":2,"count":null,"selGroup":null},{"id":"s29","name":"독서와 작문","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"지정","sem":1,"grade":3,"count":null,"selGroup":null},{"id":"s30","name":"확률과 통계","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"지정","sem":1,"grade":3,"count":null,"selGroup":null},{"id":"s31","name":"영어 독해와 작문","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"지정","sem":1,"grade":3,"count":null,"selGroup":null},{"id":"s32","name":"스포츠 과학","credit":1.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":1,"grade":3,"count":null,"selGroup":null},{"id":"s33","name":"스포츠 문화","credit":1.0,"kwGroup":"체육","tGroup":"예체","kind":"지정","sem":2,"grade":3,"count":null,"selGroup":null},{"id":"s34","name":"주제 탐구 독서","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":1,"grade":2,"count":59,"selGroup":"A"},{"id":"s35","name":"수학과 문화","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":1,"grade":2,"count":9,"selGroup":"A"},{"id":"s36","name":"인공지능 수학","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":1,"grade":2,"count":32,"selGroup":"A"},{"id":"s37","name":"실생활 영어 회화","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":1,"grade":2,"count":30,"selGroup":"A"},{"id":"s38","name":"영미 문학 읽기","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":1,"grade":2,"count":7,"selGroup":"A"},{"id":"s39","name":"사회와 문화","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":2,"count":106,"selGroup":"A"},{"id":"s40","name":"세계사","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":2,"count":28,"selGroup":"A"},{"id":"s41","name":"세계시민과 지리","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":2,"count":23,"selGroup":"A"},{"id":"s42","name":"현대사회와 윤리","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":2,"count":111,"selGroup":"A"},{"id":"s43","name":"물리학","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":2,"count":52,"selGroup":"A"},{"id":"s44","name":"생명과학","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":2,"count":90,"selGroup":"A"},{"id":"s45","name":"지구과학","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":2,"count":15,"selGroup":"A"},{"id":"s46","name":"화학","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":2,"count":95,"selGroup":"A"},{"id":"s47","name":"정보","credit":3.0,"kwGroup":"기술·가정/정보","tGroup":"정보","kind":"선택","sem":1,"grade":2,"count":75,"selGroup":"C"},{"id":"s48","name":"일본어","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":2,"count":62,"selGroup":"C"},{"id":"s49","name":"중국어","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":2,"count":38,"selGroup":"C"},{"id":"s50","name":"한문","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":2,"count":44,"selGroup":"C"},{"id":"s51","name":"독서 토론과 글쓰기","credit":4.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":2,"grade":2,"count":50,"selGroup":"B"},{"id":"s52","name":"기하","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":2,"grade":2,"count":75,"selGroup":"B"},{"id":"s53","name":"수학과제 탐구","credit":4.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":2,"grade":2,"count":9,"selGroup":"B"},{"id":"s54","name":"미디어 영어","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":2,"grade":2,"count":30,"selGroup":"B"},{"id":"s55","name":"영어 발표와 토론","credit":4.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":2,"grade":2,"count":15,"selGroup":"B"},{"id":"s56","name":"동아시아 역사 기행","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":2,"count":42,"selGroup":"B"},{"id":"s57","name":"윤리와 사상","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":2,"count":118,"selGroup":"B"},{"id":"s58","name":"정치","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":2,"count":63,"selGroup":"B"},{"id":"s59","name":"한국지리 탐구","credit":4.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":2,"count":33,"selGroup":"B"},{"id":"s60","name":"물질과 에너지","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":2,"count":90,"selGroup":"B"},{"id":"s61","name":"세포와 물질대사","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":2,"count":86,"selGroup":"B"},{"id":"s62","name":"역학과 에너지","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":2,"count":33,"selGroup":"B"},{"id":"s63","name":"행성우주과학","credit":4.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":2,"count":13,"selGroup":"B"},{"id":"s64","name":"정보","credit":3.0,"kwGroup":"기술·가정/정보","tGroup":"정보","kind":"선택","sem":2,"grade":2,"count":63,"selGroup":"C"},{"id":"s65","name":"일본어","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":2,"count":65,"selGroup":"C"},{"id":"s66","name":"중국어","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":2,"count":45,"selGroup":"C"},{"id":"s67","name":"한문","credit":3.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":2,"count":46,"selGroup":"C"},{"id":"s68","name":"문학과 영상","credit":3.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":1,"grade":3,"count":35,"selGroup":"D"},{"id":"s69","name":"언어생활 탐구","credit":3.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":1,"grade":3,"count":21,"selGroup":"D"},{"id":"s70","name":"경제 수학","credit":3.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":1,"grade":3,"count":2,"selGroup":"D"},{"id":"s71","name":"미적분Ⅱ","credit":3.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":1,"grade":3,"count":74,"selGroup":"D"},{"id":"s72","name":"세계 문화와 영어","credit":3.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":1,"grade":3,"count":18,"selGroup":"D"},{"id":"s73","name":"심화 영어","credit":3.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":1,"grade":3,"count":1,"selGroup":"D"},{"id":"s74","name":"경제","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":3,"count":34,"selGroup":"D"},{"id":"s75","name":"도시의 미래 탐구","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":3,"count":29,"selGroup":"D"},{"id":"s76","name":"법과 사회","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":3,"count":68,"selGroup":"D"},{"id":"s77","name":"역사로 탐구하는 현대 세계","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":3,"count":47,"selGroup":"D"},{"id":"s78","name":"인문학과 윤리","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":1,"grade":3,"count":69,"selGroup":"D"},{"id":"s79","name":"생물의 유전","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":3,"count":48,"selGroup":"D"},{"id":"s80","name":"전자기와 양자","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":3,"count":40,"selGroup":"D"},{"id":"s81","name":"지구시스템과학","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":3,"count":9,"selGroup":"D"},{"id":"s82","name":"화학 반응의 세계","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":1,"grade":3,"count":72,"selGroup":"D"},{"id":"s83","name":"운동과 건강","credit":3.0,"kwGroup":"체육","tGroup":"예체","kind":"선택","sem":1,"grade":3,"count":9,"selGroup":"D"},{"id":"s84","name":"미술 감상과 비평","credit":3.0,"kwGroup":"예술","tGroup":"예체","kind":"선택","sem":1,"grade":3,"count":108,"selGroup":"E"},{"id":"s85","name":"음악 감상과 비평","credit":3.0,"kwGroup":"예술","tGroup":"예체","kind":"선택","sem":1,"grade":3,"count":84,"selGroup":"E"},{"id":"s86","name":"인공지능 기초","credit":4.0,"kwGroup":"기술·가정/정보","tGroup":"정보","kind":"선택","sem":1,"grade":3,"count":50,"selGroup":"F"},{"id":"s87","name":"언어생활과 한자","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":3,"count":11,"selGroup":"F"},{"id":"s88","name":"일본어 회화","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":3,"count":39,"selGroup":"F"},{"id":"s89","name":"중국어 회화","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":1,"grade":3,"count":13,"selGroup":"F"},{"id":"s90","name":"교육의 이해","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":1,"grade":3,"count":26,"selGroup":"F"},{"id":"s91","name":"논리와 사고","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":1,"grade":3,"count":38,"selGroup":"F"},{"id":"s92","name":"생태와 환경","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":1,"grade":3,"count":15,"selGroup":"F"},{"id":"s93","name":"매체 의사소통","credit":3.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":2,"grade":3,"count":149,"selGroup":"G"},{"id":"s94","name":"직무 의사소통","credit":3.0,"kwGroup":"국어","tGroup":"국어","kind":"선택","sem":2,"grade":3,"count":43,"selGroup":"G"},{"id":"s95","name":"실용 통계","credit":3.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":2,"grade":3,"count":152,"selGroup":"G"},{"id":"s96","name":"직무 수학","credit":3.0,"kwGroup":"수학","tGroup":"수학","kind":"선택","sem":2,"grade":3,"count":40,"selGroup":"G"},{"id":"s97","name":"심화 영어 독해와 작문","credit":3.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":2,"grade":3,"count":88,"selGroup":"G"},{"id":"s98","name":"직무 영어","credit":3.0,"kwGroup":"영어","tGroup":"영어","kind":"선택","sem":2,"grade":3,"count":104,"selGroup":"G"},{"id":"s99","name":"금융과 경제생활","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":3,"count":73,"selGroup":"G"},{"id":"s100","name":"기후변화와 지속가능한 세계","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":3,"count":91,"selGroup":"G"},{"id":"s101","name":"사회문제 탐구","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":3,"count":135,"selGroup":"G"},{"id":"s102","name":"여행지리","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":3,"count":55,"selGroup":"G"},{"id":"s103","name":"윤리문제 탐구","credit":3.0,"kwGroup":"사회(역사/도덕 포함)","tGroup":"사회","kind":"선택","sem":2,"grade":3,"count":123,"selGroup":"G"},{"id":"s104","name":"과학의 역사와 문화","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":3,"count":82,"selGroup":"G"},{"id":"s105","name":"기후변화와 환경생태","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":3,"count":78,"selGroup":"G"},{"id":"s106","name":"융합과학 탐구","credit":3.0,"kwGroup":"과학","tGroup":"과학","kind":"선택","sem":2,"grade":3,"count":83,"selGroup":"G"},{"id":"s107","name":"운동과 건강","credit":3.0,"kwGroup":"체육","tGroup":"예체","kind":"선택","sem":2,"grade":3,"count":48,"selGroup":"G"},{"id":"s108","name":"미술과 매체","credit":3.0,"kwGroup":"예술","tGroup":"예체","kind":"선택","sem":2,"grade":3,"count":94,"selGroup":"H"},{"id":"s109","name":"음악과 미디어","credit":3.0,"kwGroup":"예술","tGroup":"예체","kind":"선택","sem":2,"grade":3,"count":98,"selGroup":"H"},{"id":"s110","name":"일본 문화","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":3,"count":33,"selGroup":"I"},{"id":"s111","name":"중국 문화","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":3,"count":22,"selGroup":"I"},{"id":"s112","name":"한문 고전 읽기","credit":4.0,"kwGroup":"제2외국어/한문","tGroup":"제2외/한문","kind":"선택","sem":2,"grade":3,"count":7,"selGroup":"I"},{"id":"s113","name":"삶과 종교","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":2,"grade":3,"count":4,"selGroup":"I"},{"id":"s114","name":"인간과 경제활동","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":2,"grade":3,"count":27,"selGroup":"I"},{"id":"s115","name":"인간과 심리","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":2,"grade":3,"count":78,"selGroup":"I"},{"id":"s116","name":"인간과 철학","credit":4.0,"kwGroup":"교양","tGroup":"교양","kind":"선택","sem":2,"grade":3,"count":21,"selGroup":"I"}],"extrasSeed":[{"id":"x1","grade":1,"name":"창체1(자율-상담사서보건)","hours":3,"teacherId":"t57","reason":"상담"},{"id":"x2","grade":1,"name":"창체1(자율-상담사서보건)","hours":3,"teacherId":"t58","reason":"보건"},{"id":"x3","grade":1,"name":"창체1(자율-상담사서보건)","hours":3,"teacherId":"t59","reason":"사서"},{"id":"x4","grade":1,"name":"기타2(책 한권 읽기)","hours":1,"teacherId":"t1","reason":"1학년 국어 담당"},{"id":"x5","grade":1,"name":"기타2(책 한권 읽기)","hours":1,"teacherId":"t5","reason":"1학년 국어 담당"},{"id":"x6","grade":1,"name":"기타2(책 한권 읽기)","hours":1,"teacherId":"t6","reason":"1학년 국어 담당"},{"id":"x7","grade":2,"name":"기타3(국제이해)","hours":4,"teacherId":"t54","reason":"일본어"},{"id":"x8","grade":2,"name":"기타3(국제이해)","hours":5,"teacherId":"t55","reason":"중국어"},{"id":"x9","grade":2,"name":"기타4(민주시민,환경)","hours":1,"teacherId":"","reason":""},{"id":"x10","grade":2,"name":"기타4(민주시민,환경)","hours":1,"teacherId":"","reason":""},{"id":"x11","grade":2,"name":"기타4(민주시민,환경)","hours":1,"teacherId":"","reason":""},{"id":"x12","grade":3,"name":"창체3(영어과)","hours":3,"teacherId":"t18","reason":"영어수업"},{"id":"x13","grade":3,"name":"창체3(영어과)","hours":7,"teacherId":"t60","reason":"영어수업"},{"id":"x14","grade":3,"name":"기타5(자기주도학습)","hours":1,"teacherId":"t53","reason":""},{"id":"x15","grade":3,"name":"기타5(자기주도학습)","hours":1,"teacherId":"t54","reason":""},{"id":"x16","grade":3,"name":"기타5(자기주도학습)","hours":1,"teacherId":"","reason":""},{"id":"x17","grade":3,"name":"기타6(진학정보)","hours":3,"teacherId":"","reason":""},{"id":"x18","grade":3,"name":"창체4(직업반-자율)","hours":1,"teacherId":"t54","reason":""},{"id":"x19","grade":3,"name":"창체5(직업반-진로)","hours":1,"teacherId":"t55","reason":""}],"blocks":[{"id":"b1","grade":1,"name":"창체1 (자율)-상담·사서·보건","hours":9,"defaultGroup":"창체"},{"id":"b2","grade":1,"name":"기타1 (마음밭 가꾸기)-학급별","hours":9,"defaultGroup":"창체"},{"id":"b3","grade":1,"name":"기타2 (책 한권 읽기)-학년별","hours":3,"defaultGroup":"창체"},{"id":"b4","grade":2,"name":"창체2/기타3 (국제이해)-학급별","hours":9,"defaultGroup":"창체"},{"id":"b5","grade":2,"name":"기타4 (민주시민·환경)-학년별","hours":3,"defaultGroup":"창체"},{"id":"b6","grade":3,"name":"창체3 (자율)-영어과","hours":10,"defaultGroup":"창체"},{"id":"b7","grade":3,"name":"기타5 (자기주도학습)-학급별","hours":3,"defaultGroup":"창체"},{"id":"b8","grade":3,"name":"기타6 (진학정보)-학년별","hours":3,"defaultGroup":"창체"},{"id":"b9","grade":3,"name":"직업반 창체4 (자율)","hours":1,"defaultGroup":"창체"},{"id":"b10","grade":3,"name":"직업반 창체5 (진로)","hours":1,"defaultGroup":"창체"}]};
+const LS_KEY = 'sisu2027_v3';
+const BASE_GROUPS = ['국어','수학','영어','과학','사회','예체','제2외/한문','정보','교양','창체','기타'];
 let GROUPS = [];
 
 /* ---------- state ---------- */
@@ -175,18 +177,29 @@ function freshState(){
     pickSubject: null,
     showAllGroups: true,
     teachers: DATA.teachers.map(t=>({...t})),   // 편집 가능한 교사 명단
+    subjects: DATA.subjects.map(s=>({...s})),   // 편집 가능한 과목
+    blocks: DATA.blocks.map(b=>({...b, group:b.defaultGroup})),   // 창체·기타 편성 블록
+    subjGroupOverride: {},    // subjectId -> 거시편성에서 재배치된 교과군
+    macroTarget: null,        // 거시편성 기준 1인 시수(null=자동)
+    capacity2: DATA.defaultCapacity,
     secOverride: {},          // subjectId -> 분반수
     assignments: [],          // {id, teacherId, subjectId, sections}
     extras: DATA.extrasSeed.map(x => ({id:'e'+x.id, teacherId:x.teacherId, name:x.name,
       hours:x.hours, sem:0, note:x.reason||''})),   // sem 0 = 연간(1·2학기 공통)
     nextId: 1,
-    nextTid: 1
+    nextTid: 1,
+    nextSid: 1
   };
 }
 function load(){
   try{ const s = JSON.parse(localStorage.getItem(LS_KEY)); if(!(s && s.assignments)) return null;
     if(!s.teachers) s.teachers = DATA.teachers.map(t=>({...t}));   // 구버전 호환
+    if(!s.subjects) s.subjects = DATA.subjects.map(x=>({...x}));
+    if(!s.blocks) s.blocks = DATA.blocks.map(b=>({...b, group:b.defaultGroup}));
+    if(!s.subjGroupOverride) s.subjGroupOverride = {};
+    if(s.macroTarget===undefined) s.macroTarget = null;
     if(s.nextTid==null) s.nextTid = 1;
+    if(s.nextSid==null) s.nextSid = 1;
     return s;
   } catch(e){ return null; }
 }
@@ -199,23 +212,40 @@ function save(){
 }
 
 /* ---------- helpers ---------- */
-const subjById = {}; DATA.subjects.forEach(s=>subjById[s.id]=s);
+let subjById = {};
 let tById = {};
 function reindexTeachers(){
-  tById = {};
-  state.teachers.forEach(t=>tById[t.id]=t);
+  tById = {}; state.teachers.forEach(t=>tById[t.id]=t);
+  subjById = {}; state.subjects.forEach(s=>subjById[s.id]=s);
   const present = new Set(state.teachers.map(t=>t.group));
   GROUPS = BASE_GROUPS.filter(g=>present.has(g)).concat([...present].filter(g=>!BASE_GROUPS.includes(g)));
   if(state.teacherFilter!=='전체' && !present.has(state.teacherFilter)) state.teacherFilter='전체';
 }
+// 과목의 실효 교과군 (거시편성 재배치 반영)
+function effGroup(s){ return state.subjGroupOverride[s.id] || s.tGroup; }
+// 표시 대상 전체 교과군: 교사·과목·블록 중 하나라도 있는 그룹
+function allGroups(){
+  const present=new Set();
+  state.teachers.forEach(t=>{ if(t.group) present.add(t.group); });
+  state.subjects.forEach(s=>{ const g=effGroup(s); if(g && g!=='__none__') present.add(g); });
+  state.blocks.forEach(b=>{ if(b.group && b.group!=='__none__') present.add(b.group); });
+  return BASE_GROUPS.filter(g=>present.has(g)).concat([...present].filter(g=>!BASE_GROUPS.includes(g)));
+}
+// 교과군 g의 sem학기 필요시수 (과목 + 창체·기타 블록)
+function groupReqHours(g, sem){
+  let h=0;
+  state.subjects.forEach(s=>{ if(s.sem===sem && effGroup(s)===g) h+=reqHours(s); });
+  state.blocks.forEach(b=>{ if(b.group===g) h+=b.hours; });   // 블록은 학기 공통
+  return h;
+}
 
 function sections(s){
   if(state.secOverride[s.id]!=null) return state.secOverride[s.id];
-  if(s.kind==='지정') return DATA.classCount;
-  return Math.max(1, Math.ceil(s.count/state.capacity));
+  return autoSections(s);
 }
 function autoSections(s){
-  return s.kind==='지정' ? DATA.classCount : Math.max(1, Math.ceil(s.count/state.capacity));
+  if(s.kind==='지정') return s.classes!=null ? s.classes : DATA.classCount;
+  return Math.max(1, Math.ceil((s.count||0)/state.capacity));
 }
 function reqHours(s){ return s.credit*sections(s); }
 function assignedSections(sid){
@@ -229,10 +259,11 @@ function subjLabel(s, withGrade=true){
 function teacherSemHours(t, sem){
   let major=0, non=0, liberal=0, extra=0;
   state.assignments.filter(a=>a.teacherId===t.id).forEach(a=>{
-    const s=subjById[a.subjectId]; if(s.sem!==sem) return;
+    const s=subjById[a.subjectId]; if(!s || s.sem!==sem) return;
     const h=a.sections*s.credit;
-    if(s.tGroup==='교양') liberal+=h;
-    else if(s.tGroup===t.group) major+=h;
+    const eg=effGroup(s);
+    if(eg==='교양'||eg==='창체') liberal+=h;
+    else if(eg===t.group) major+=h;
     else non+=h;
   });
   state.extras.filter(x=>x.teacherId===t.id && (x.sem===0||x.sem===sem)).forEach(x=>extra+=x.hours);
@@ -241,20 +272,18 @@ function teacherSemHours(t, sem){
 function esc(x){ return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 /* ---------- group status bar (모든 탭 상단 고정) ---------- */
-const GB_ORDER = ['국어','수학','영어','과학','사회','예체','제2외/한문','정보','교양','기타'];
 function renderGroupBar(){
   const sem=state.sem;
-  const groups = GB_ORDER.filter(g => DATA.subjects.some(s=>s.tGroup===g) || state.teachers.some(t=>t.group===g));
+  const groups = allGroups();
   let html=`<span class="gb-label">📊 ${sem}학기<br>교과군 현황</span>`;
   for(const g of groups){
-    const subs = DATA.subjects.filter(s=>s.tGroup===g && s.sem===sem);
-    const req = subs.reduce((t,s)=>t+reqHours(s),0);
-    const ts = state.teachers.filter(t=>t.group===g);
-    const avg = ts.length ? req/ts.length : 0;
-    const lv = ts.length===0 ? '' : (avg>=17?'hi':(avg>=15?'mid':'ok'));
+    const req = groupReqHours(g, sem);
+    const tc = state.teachers.filter(t=>t.group===g).length;
+    const avg = tc ? req/tc : 0;
+    const lv = tc===0 ? (req>0?'hi':'') : (avg>=17?'hi':(avg>=15?'mid':'ok'));
     html+=`<button class="gbtn" onclick="app.gotoGroup('${g}')"
-      title="${g} · ${sem}학기 필요시수 ${req}시간 ÷ 교사 ${ts.length}명${ts.length?' = 1인 평균 '+avg.toFixed(1)+'시간':''} (클릭 시 교사 배정으로 이동)">
-      <b>${g}</b><span class="gh ${lv}">${req}h</span><span class="gt">${ts.length}명${ts.length?'·'+avg.toFixed(1):''}</span>
+      title="${g} · ${sem}학기 필요시수 ${req}시간 ÷ 교사 ${tc}명${tc?' = 1인 평균 '+avg.toFixed(1)+'시간':' (교사 없음)'} (클릭 시 교사 배정으로 이동)">
+      <b>${g}</b><span class="gh ${lv}">${req}h</span><span class="gt">${tc}명${tc?'·'+avg.toFixed(1):''}</span>
     </button>`;
   }
   document.getElementById('groupbar').innerHTML=html;
@@ -270,12 +299,13 @@ function render(){
   });
   document.querySelectorAll('#semtoggle button').forEach(b=>b.classList.toggle('on', +b.dataset.sem===state.sem));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.dataset.tab===state.tab));
-  ['subjects','teachers','summary'].forEach(t=>{
+  ['subjects','teachers','summary','macro'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = state.tab===t?'':'none';
   });
   if(state.tab==='subjects') renderSubjects();
   if(state.tab==='teachers') renderTeachers();
   if(state.tab==='summary') renderSummary();
+  if(state.tab==='macro') renderMacro();
 }
 
 /* ---------- tab 1: subjects ---------- */
@@ -290,34 +320,36 @@ function renderSubjects(){
     </div></div>`;
 
   for(const grade of [1,2,3]){
-    const list = DATA.subjects.filter(s=>s.sem===sem && s.grade===grade);
-    if(!list.length) continue;
+    const list = state.subjects.filter(s=>s.sem===sem && s.grade===grade);
     const stuInfo = DATA.students[grade] ? ` · 학생 ${DATA.students[grade]}명` : ' (신입생)';
     const totReq = list.reduce((t,s)=>t+reqHours(s),0);
     const credSum = {};
-    list.forEach(s=>{ const k=s.kind==='지정'?'지정':'그룹'+s.selGroup; credSum[k]=(credSum[k]||0)+1; });
+    list.forEach(s=>{ const k=s.kind==='지정'?'지정':'그룹'+(s.selGroup||'선택'); credSum[k]=(credSum[k]||0)+1; });
     html+=`<div class="card"><div class="grade-h">
       <h3>${grade}학년 · ${sem}학기${stuInfo}</h3>
       <span class="badge b-blue">필요시수 합계 ${totReq}시간</span>
       <span class="small">${Object.entries(credSum).map(([k,v])=>k+' '+v+'과목').join(' · ')}</span>
+      <button class="btn btn-p" style="margin-left:auto" onclick="app.addSubject(${grade},${sem})">＋ 과목 추가</button>
     </div>
     <div class="tbl-scroll"><table>
     <tr><th>구분</th><th>과목명</th><th>교과군</th><th class="ctr">학점<br>(주당)</th><th class="num">신청<br>인원</th>
     <th class="ctr">분반수</th><th class="num">분반당<br>인원</th><th class="num">필요시수</th>
-    <th class="num">배정분반</th><th class="num">배정시수</th><th class="ctr">상태</th></tr>`;
+    <th class="num">배정분반</th><th class="num">배정시수</th><th class="ctr">상태</th><th class="ctr">관리</th></tr>`;
+    if(!list.length) html+='<tr><td colspan="12" class="ctr small">등록된 과목이 없습니다. <b>＋ 과목 추가</b>로 등록하세요.</td></tr>';
     for(const s of list){
       const sec=sections(s), asec=assignedSections(s.id), req=reqHours(s), ah=asec*s.credit;
       const per = s.count!=null && sec>0 ? (s.count/sec).toFixed(1) : '–';
       const ovr = state.secOverride[s.id]!=null;
+      const eg=effGroup(s), moved=eg!==s.tGroup;
       let stat;
       if(asec===sec) stat='<span class="badge b-green">완료</span>';
       else if(asec>sec) stat='<span class="badge b-amber">초과 +'+(asec-sec)+'</span>';
       else if(asec>0) stat='<span class="badge b-amber">'+(sec-asec)+'분반 남음</span>';
       else stat='<span class="badge b-red">미배정</span>';
       html+=`<tr>
-        <td>${s.kind==='선택'?'<span class="badge b-violet">그룹'+s.selGroup+'</span>':'<span class="badge b-gray">지정</span>'}</td>
+        <td>${s.kind==='선택'?'<span class="badge b-violet">그룹'+(s.selGroup||'선택')+'</span>':'<span class="badge b-gray">지정</span>'}</td>
         <td><b>${esc(s.name)}</b></td>
-        <td><span class="small">${esc(s.kwGroup)}</span> <span class="badge b-teal">${s.tGroup}</span></td>
+        <td><span class="small">${esc(s.kwGroup)}</span> <span class="badge b-teal">${eg}</span>${moved?' <span class="small">(원래 '+s.tGroup+')</span>':''}</td>
         <td class="ctr">${s.credit}</td>
         <td class="num">${s.count!=null?s.count+'명':'전원'}</td>
         <td class="ctr"><input type="number" min="0" max="30" class="${ovr?'ovr':''}" value="${sec}"
@@ -326,11 +358,35 @@ function renderSubjects(){
         <td class="num"><b>${req}</b></td>
         <td class="num">${asec}</td>
         <td class="num">${ah}</td>
-        <td class="ctr">${stat}</td></tr>`;
+        <td class="ctr">${stat}</td>
+        <td class="ctr" style="white-space:nowrap">
+          <button class="btn btn-s" style="padding:4px 8px" onclick="app.editSubject('${s.id}')" title="수정">✎</button>
+          <button class="btn btn-s" style="padding:4px 8px;color:var(--red)" onclick="app.deleteSubject('${s.id}')" title="삭제">🗑</button></td></tr>`;
+      if(state.editSubject===s.id) html+=`<tr><td colspan="12">${subjectEditor(s)}</td></tr>`;
     }
     html+='</table></div></div>';
   }
   document.getElementById('tab-subjects').innerHTML=html;
+}
+
+function subjectEditor(s){
+  const grpOpts=BASE_GROUPS.filter(g=>g!=='기타').map(g=>`<option value="${g}" ${s.tGroup===g?'selected':''}>${g}</option>`).join('');
+  return `<div class="editor" onclick="event.stopPropagation()">
+    <h4>✏️ 과목 수정</h4>
+    <div class="addrow">
+      <label>과목명 <input type="text" id="es-name-${s.id}" value="${esc(s.name)}" style="width:150px"></label>
+      <label>교과군 <select id="es-grp-${s.id}">${grpOpts}</select></label>
+      <label>학점 <input type="number" id="es-cr-${s.id}" min="1" max="8" step="0.5" value="${s.credit}"></label>
+      <label>구분 <select id="es-kind-${s.id}"><option value="지정" ${s.kind==='지정'?'selected':''}>지정(전교생)</option><option value="선택" ${s.kind==='선택'?'selected':''}>선택</option></select></label>
+      <label>신청인원 <input type="number" id="es-cnt-${s.id}" min="0" value="${s.count!=null?s.count:0}"></label>
+      <label>선택그룹 <input type="text" id="es-sg-${s.id}" value="${esc(s.selGroup||'')}" style="width:60px"></label>
+      <label>학년 <select id="es-gr-${s.id}">${[1,2,3].map(g=>`<option value="${g}" ${s.grade===g?'selected':''}>${g}</option>`).join('')}</select></label>
+      <label>학기 <select id="es-sem-${s.id}">${[1,2].map(m=>`<option value="${m}" ${s.sem===m?'selected':''}>${m}</option>`).join('')}</select></label>
+      <button class="btn btn-p" onclick="app.saveSubject('${s.id}')">저장</button>
+      <button class="btn btn-s" onclick="app.editSubject('${s.id}')">취소</button>
+    </div>
+    <div class="small" style="margin-top:6px">※ 지정과목은 신청인원 대신 전교생(분반 ${DATA.classCount}개) 기준으로 계산됩니다. 교과군을 바꾸면 거시편성 재배치는 초기화됩니다.</div>
+  </div>`;
 }
 
 /* ---------- tab 2: teachers ---------- */
@@ -353,17 +409,17 @@ function renderTeachers(){
   html+=`</div>
     <div class="desc">① 아래에서 과목을 클릭해 선택 → ② 교사 표에서 담당할 교사를 클릭하면 <b>1분반씩</b> 배정됩니다.
     같은 과목을 다시 클릭하면 선택이 해제됩니다. (과목 선택 시 해당 교과군 교사로 자동 필터링)</div>`;
-  let tgOrder=[...new Set(DATA.subjects.filter(s=>s.sem===sem).map(s=>s.tGroup))];
-  if(collapsed) tgOrder = tgOrder.filter(g=>g===picked2.tGroup);
+  let tgOrder=allGroups().filter(g=>state.subjects.some(s=>s.sem===sem&&effGroup(s)===g));
+  if(collapsed) tgOrder = tgOrder.filter(g=>g===effGroup(picked2));
   for(const g of tgOrder){
-    const subs=DATA.subjects.filter(s=>s.sem===sem&&s.tGroup===g);
-    const greq=subs.reduce((t,s)=>t+reqHours(s),0);
+    const subs=state.subjects.filter(s=>s.sem===sem&&effGroup(s)===g);
+    const greq=groupReqHours(g, sem);
     const gtc=state.teachers.filter(t=>t.group===g).length;
     html+=`<div class="pickgroup"><span class="pickg-label">${g}<br><span class="pickg-h">(${greq}시간 / ${gtc}명)</span></span><div class="chips">`;
     for(const s of subs){
       const sec=sections(s), asec=assignedSections(s.id), rem=sec-asec;
       const cls = state.pickSubject===s.id?'sel':(rem<=0?'done':'');
-      const who = state.assignments.filter(a=>a.subjectId===s.id).map(a=>tById[a.teacherId].name+'×'+a.sections).join(', ');
+      const who = state.assignments.filter(a=>a.subjectId===s.id).map(a=>(tById[a.teacherId]?tById[a.teacherId].name:'?')+'×'+a.sections).join(', ');
       html+=`<span class="pick ${cls}" onclick="app.pickSubj('${s.id}')"
         title="${esc(s.kwGroup)} · ${s.count!=null?('신청 '+s.count+'명'):'전교생'}${who?' · 배정: '+esc(who):''}">
         ${s.grade}학년 ${s.kind==='선택'?'['+s.selGroup+']':'[지정]'} ${esc(s.name)}
@@ -394,9 +450,10 @@ function renderTeachers(){
     const cur = sem===1?h1:h2;
     const chips=[];
     state.assignments.filter(a=>a.teacherId===t.id).forEach(a=>{
-      const s=subjById[a.subjectId]; if(s.sem!==sem) return;
-      const cls = s.tGroup===t.group?'':(s.tGroup==='교양'?'extra':'nonmajor');
-      chips.push(`<span class="chip ${cls}" title="${s.tGroup===t.group?'전공':(s.tGroup==='교양'?'교양':'비전공')}">
+      const s=subjById[a.subjectId]; if(!s || s.sem!==sem) return;
+      const eg=effGroup(s);
+      const cls = eg===t.group?'':((eg==='교양'||eg==='창체')?'extra':'nonmajor');
+      chips.push(`<span class="chip ${cls}" title="${eg===t.group?'전공':((eg==='교양'||eg==='창체')?eg:'비전공')}">
         ${esc(subjLabel(s))} ×${a.sections} <b>${a.sections*s.credit}h</b>
         <span class="x" onclick="event.stopPropagation();app.removeAssign('${a.id}')">×</span></span>`);
     });
@@ -430,9 +487,9 @@ function renderTeachers(){
 function teacherEditor(t){
   const sem=state.sem;
   // subject options: current semester, remaining first, major group first
-  const opts = DATA.subjects.filter(s=>s.sem===sem).map(s=>{
+  const opts = state.subjects.filter(s=>s.sem===sem).map(s=>{
     const rem = sections(s)-assignedSections(s.id);
-    return {s, rem, pri: (s.tGroup===t.group?0:1)};
+    return {s, rem, pri: (effGroup(s)===t.group?0:1)};
   }).sort((a,b)=> a.pri-b.pri || (b.rem>0)-(a.rem>0) || a.s.grade-b.s.grade);
   const optHtml = opts.map(o=>`<option value="${o.s.id}">${o.pri?'〔타교과〕':''}${subjLabel(o.s)} · ${o.s.credit}학점 · 잔여 ${o.rem}/${sections(o.s)}분반</option>`).join('');
   let rows='';
@@ -487,7 +544,7 @@ function renderSummary(){
   let html='';
   // top stats per semester
   for(const sem of [1,2]){
-    const subs = DATA.subjects.filter(s=>s.sem===sem);
+    const subs = state.subjects.filter(s=>s.sem===sem);
     const req = subs.reduce((t,s)=>t+reqHours(s),0);
     const asn = subs.reduce((t,s)=>t+Math.min(assignedSections(s.id),sections(s))*s.credit,0);
     const extra = state.extras.filter(x=>x.teacherId&&(x.sem===0||x.sem===sem)).reduce((t,x)=>t+x.hours,0);
@@ -515,16 +572,18 @@ function renderSummary(){
     html+='</div>';
   }
   // by teacher group
-  html+='<div class="card"><h2>교과군별 필요 vs 배정 (교과 시수)</h2><div class="tbl-scroll"><table><tr><th>교과담당군</th>';
+  html+='<div class="card"><h2>교과군별 필요 vs 배정 (교과 시수)</h2>'
+    +'<div class="desc">창체·기타 블록은 거시편성에서 배치한 교과군에 포함됩니다.</div>'
+    +'<div class="tbl-scroll"><table><tr><th>교과담당군</th>';
   for(const sem of [1,2]) html+=`<th class="num">${sem}학기 필요</th><th class="num">${sem}학기 배정</th><th class="ctr">${sem}학기 상태</th>`;
   html+='</tr>';
-  const tgroups=[...new Set(DATA.subjects.map(s=>s.tGroup))];
-  for(const g of tgroups){
+  for(const g of allGroups()){
     html+=`<tr><td><b>${g}</b></td>`;
     for(const sem of [1,2]){
-      const subs=DATA.subjects.filter(s=>s.tGroup===g&&s.sem===sem);
-      const req=subs.reduce((t,s)=>t+reqHours(s),0);
-      const asn=subs.reduce((t,s)=>t+assignedSections(s.id)*s.credit,0);
+      const req=groupReqHours(g, sem);
+      const subs=state.subjects.filter(s=>effGroup(s)===g&&s.sem===sem);
+      const bh=state.blocks.filter(b=>b.group===g).reduce((t,b)=>t+b.hours,0);
+      const asn=subs.reduce((t,s)=>t+assignedSections(s.id)*s.credit,0)+bh;
       const ok=req===asn;
       html+=`<td class="num">${req}</td><td class="num">${asn}</td>
         <td class="ctr"><span class="badge ${ok?'b-green':(asn>req?'b-amber':'b-red')}">${ok?'완료':(asn-req>0?'+':'')+(asn-req)+'h'}</span></td>`;
@@ -551,10 +610,156 @@ function renderSummary(){
   document.getElementById('tab-summary').innerHTML=html;
 }
 
+/* ---------- tab 4: 거시편성 (macro planning) ---------- */
+function renderMacro(){
+  const sem=state.sem;
+  const groups=allGroups();
+  // 대표 주당시수 = (1학기+2학기)/2 (교사는 두 학기 모두 담당 → 연평균 부담)
+  const rows=groups.map(g=>{
+    const h1=groupReqHours(g,1), h2=groupReqHours(g,2);
+    const rep=(h1+h2)/2;
+    const tc=state.teachers.filter(t=>t.group===g).length;
+    return {g, h1, h2, rep, tc, avg: tc? rep/tc : 0};
+  });
+  const totRep=rows.reduce((a,r)=>a+r.rep,0);
+  const totT=rows.reduce((a,r)=>a+r.tc,0);
+  const autoTarget = totT? totRep/totT : 16;
+  const target = state.macroTarget!=null ? state.macroTarget : Math.round(autoTarget*10)/10;
+
+  let html=`<div class="card"><h2>🗺️ 거시편성 — 교과군별 시수·교사 균형</h2>
+    <div class="desc">배정시수는 <b>1·2학기 평균 주당시수</b>(교사는 두 학기 모두 담당) 기준입니다. 창체·기타 블록과 교양 과목을
+    아래에서 교과군에 넣고 뺄 수 있으며, 기준 1인 시수와 차이가 큰 교과군은 <b>필요 교사수</b>를 추천합니다.</div>
+    <div class="addrow">
+      <label>기준 1인 시수 <input type="number" min="8" max="25" step="0.5" value="${target}" onchange="app.setMacroTarget(this.value)"></label>
+      <button class="btn btn-s" onclick="app.setMacroTarget('')">자동(전체 평균 ${autoTarget.toFixed(1)})</button>
+      <span class="small">권장 교사수 = 배정시수 ÷ 기준 1인 시수 · 편차 15% 이상이면 강조</span>
+    </div>
+    <div class="tbl-scroll" style="margin-top:10px"><table>
+    <tr><th>교과군</th><th class="num">1학기</th><th class="num">2학기</th><th class="num">배정시수<br>(평균)</th>
+    <th class="num">교사수</th><th class="num">1인 평균</th><th class="ctr">균형</th><th class="num">권장<br>교사수</th><th class="ctr">증감</th></tr>`;
+  for(const r of rows){
+    const dev = target? (r.avg-target)/target : 0;
+    const rec = target? Math.round(r.rep/target) : r.tc;
+    const delta = rec - r.tc;
+    let bal, balc;
+    if(r.tc===0 && r.rep>0){ bal='교사 없음'; balc='b-red'; }
+    else if(Math.abs(dev)<0.15){ bal='적정'; balc='b-green'; }
+    else if(dev>0){ bal='과다 +'+Math.round(dev*100)+'%'; balc='b-red'; }
+    else { bal='여유 '+Math.round(dev*100)+'%'; balc='b-amber'; }
+    let dtxt, dcls;
+    if(delta>0){ dtxt='＋'+delta+'명 필요'; dcls='b-red'; }
+    else if(delta<0){ dtxt=delta+'명 여유'; dcls='b-amber'; }
+    else { dtxt='유지'; dcls='b-gray'; }
+    const hi = (r.tc===0&&r.rep>0)||Math.abs(dev)>=0.15;
+    html+=`<tr class="${hi?'warnrow':''}">
+      <td><b>${r.g}</b> <span class="small">${state.subjects.filter(s=>effGroup(s)===r.g).length}과목${state.blocks.some(b=>b.group===r.g)?'+블록':''}</span></td>
+      <td class="num">${r.h1}</td><td class="num">${r.h2}</td>
+      <td class="num"><b>${r.rep%1?r.rep.toFixed(1):r.rep}</b></td>
+      <td class="num">${r.tc}</td>
+      <td class="num">${r.tc?r.avg.toFixed(1):'–'}</td>
+      <td class="ctr"><span class="badge ${balc}">${bal}</span></td>
+      <td class="num"><b>${rec}</b></td>
+      <td class="ctr"><span class="badge ${dcls}">${dtxt}</span></td></tr>`;
+  }
+  html+=`<tr style="border-top:2px solid var(--line)"><td><b>합계</b></td>
+    <td class="num">${rows.reduce((a,r)=>a+r.h1,0)}</td><td class="num">${rows.reduce((a,r)=>a+r.h2,0)}</td>
+    <td class="num"><b>${totRep%1?totRep.toFixed(1):totRep}</b></td>
+    <td class="num">${totT}</td><td class="num">${totT?(totRep/totT).toFixed(1):'–'}</td>
+    <td colspan="3"></td></tr>`;
+  html+='</table></div></div>';
+
+  // 이동 가능한 수업: 창체·기타 블록 + 교양 과목
+  const grpSel=(cur,onchange)=>{
+    const none = !cur || cur==='__none__';
+    const opts=BASE_GROUPS.map(g=>`<option value="${g}" ${cur===g?'selected':''}>${g}</option>`).join('')
+      +`<option value="__none__" ${none?'selected':''}>(미집계)</option>`;
+    return `<select onchange="${onchange}">${opts}</select>`;
+  };
+  html+=`<div class="card"><h2>🧩 창체·기타 블록 편성</h2>
+    <div class="desc">각 블록을 담당할 교과군을 선택하세요. 선택 즉시 위 표와 상단 현황이 갱신됩니다. (미집계=어느 교과군에도 넣지 않음)</div>
+    <div class="tbl-scroll"><table><tr><th>학년</th><th>블록명</th><th class="num">시수</th><th>편성 교과군</th></tr>`;
+  for(const b of state.blocks){
+    html+=`<tr><td>${b.grade}학년</td><td>${esc(b.name)}</td><td class="num"><b>${b.hours}h</b></td>
+      <td>${grpSel(b.group, `app.setBlockGroup('${b.id}',this.value)`)}</td></tr>`;
+  }
+  html+='</table></div></div>';
+
+  const libs=state.subjects.filter(s=>s.tGroup==='교양'||effGroup(s)==='교양'||state.subjGroupOverride[s.id]);
+  html+=`<div class="card"><h2>🎓 교양 등 과목 재편성</h2>
+    <div class="desc">교양 과목(및 재배치된 과목)을 다른 교과군에서 담당하도록 옮길 수 있습니다. 원래 교과군과 다르면 강조됩니다.</div>
+    <div class="tbl-scroll"><table><tr><th>학년·학기</th><th>과목</th><th class="num">필요시수</th><th>원래</th><th>편성 교과군</th></tr>`;
+  if(!libs.length) html+='<tr><td colspan="5" class="small">재편성 대상 과목이 없습니다.</td></tr>';
+  for(const s of libs){
+    const moved=state.subjGroupOverride[s.id] && state.subjGroupOverride[s.id]!==s.tGroup;
+    html+=`<tr class="${moved?'okrow':''}"><td>${s.grade}학년 ${s.sem}학기</td><td><b>${esc(s.name)}</b></td>
+      <td class="num">${reqHours(s)}h</td><td><span class="small">${s.tGroup}</span></td>
+      <td>${grpSel(effGroup(s), `app.setSubjGroup('${s.id}',this.value)`)}</td></tr>`;
+  }
+  html+='</table></div></div>';
+
+  document.getElementById('tab-macro').innerHTML=html;
+}
+
 /* ---------- actions ---------- */
 const app = {
   setCapacity(v){ state.capacity=Math.max(5,parseInt(v)||DATA.defaultCapacity); save(); render(); },
   clearOverrides(){ if(confirm('모든 과목의 분반수를 자동 계산값으로 되돌릴까요?')){ state.secOverride={}; save(); render(); } },
+  // 거시편성
+  setMacroTarget(v){ const n=parseFloat(v); state.macroTarget = isNaN(n)?null:Math.max(1,n); save(); render(); },
+  setBlockGroup(id,g){ const b=state.blocks.find(x=>x.id===id); if(b){ b.group=g; save(); render(); } },
+  setSubjGroup(id,g){
+    const s=subjById[id]; if(!s) return;
+    if(g===s.tGroup) delete state.subjGroupOverride[id];
+    else state.subjGroupOverride[id]=g;
+    save(); render();
+  },
+  // 과목 추가·수정·삭제
+  addSubject(grade,sem){
+    const name=(prompt('추가할 과목명을 입력하세요.')||'').trim();
+    if(!name) return;
+    let g=(prompt('교과군을 입력하세요.\n('+BASE_GROUPS.filter(x=>x!=='기타').join(' / ')+')','국어')||'').trim();
+    if(!g) return;
+    const kind=confirm('학교 지정과목입니까?\n[확인]=지정(전교생)  /  [취소]=선택과목')?'지정':'선택';
+    let count=null, selGroup='';
+    if(kind==='선택'){
+      count=parseInt(prompt('신청 인원을 입력하세요.','0'))||0;
+      selGroup=(prompt('선택그룹 표기(예: A, B, D … 비워도 됩니다).','')||'').trim();
+    }
+    const credit=parseFloat(prompt('학점(주당 시수)을 입력하세요.','3'))||3;
+    const id='ns'+(state.nextSid++);
+    state.subjects.push({id, name, credit, kwGroup:g, tGroup:g, kind, sem, grade, count, selGroup});
+    state.editSubject=id;
+    save(); render();
+  },
+  editSubject(id){ state.editSubject = state.editSubject===id?null:id; save(); render(); },
+  saveSubject(id){
+    const s=subjById[id]; if(!s) return;
+    const gv=id=>document.getElementById(id+'-'+s.id);
+    const name=gv('es-name').value.trim(); if(!name){ alert('과목명을 입력하세요.'); return; }
+    s.name=name;
+    const g=gv('es-grp').value; s.tGroup=g; s.kwGroup=g;
+    if(state.subjGroupOverride[id]) delete state.subjGroupOverride[id];
+    s.credit=parseFloat(gv('es-cr').value)||s.credit;
+    s.kind=gv('es-kind').value;
+    if(s.kind==='선택'){ s.count=parseInt(gv('es-cnt').value)||0; s.selGroup=gv('es-sg').value.trim(); }
+    else { s.count=null; s.selGroup=''; }
+    s.grade=parseInt(gv('es-gr').value); s.sem=parseInt(gv('es-sem').value);
+    state.editSubject=null;
+    save(); render();
+  },
+  deleteSubject(id){
+    const s=subjById[id]; if(!s) return;
+    const na=state.assignments.filter(a=>a.subjectId===id).length;
+    let msg=`'${s.name}' 과목을 삭제할까요?`;
+    if(na) msg+=`\n\n이 과목의 교사 배정 ${na}건도 함께 삭제됩니다.`;
+    if(!confirm(msg)) return;
+    state.subjects=state.subjects.filter(x=>x.id!==id);
+    state.assignments=state.assignments.filter(a=>a.subjectId!==id);
+    delete state.secOverride[id]; delete state.subjGroupOverride[id];
+    if(state.pickSubject===id) state.pickSubject=null;
+    if(state.editSubject===id) state.editSubject=null;
+    save(); render();
+  },
   setSections(sid,v){
     const s=subjById[sid]; const n=parseInt(v);
     if(isNaN(n)||n===autoSections(s)) delete state.secOverride[sid];
@@ -611,7 +816,7 @@ const app = {
       state.pickSubject=sid;
       state.showAllGroups=false;   // 선택 시 해당 교과군만 표시
       const s=subjById[sid];
-      state.teacherFilter = state.teachers.some(t=>t.group===s.tGroup) ? s.tGroup : '전체';
+      state.teacherFilter = state.teachers.some(t=>t.group===effGroup(s)) ? effGroup(s) : '전체';
       state.openTeacher=null;
     }
     save(); render();
