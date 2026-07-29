@@ -647,20 +647,37 @@ function renderSummary(){
 }
 
 /* ---------- tab 4: 거시편성 (macro planning) ---------- */
+const DEPT_EXCLUDE=['교양','창체','기타'];
+const REAL_DEPTS=BASE_GROUPS.filter(g=>!DEPT_EXCLUDE.includes(g));
+// 교과군 g의 sem학기 배정시수를 전공/교양/창체로 분리
+function deptHours(g, sem){
+  let major=0, lib=0, ch=0;
+  state.subjects.forEach(s=>{
+    if(s.sem===sem && effGroup(s)===g){
+      if(s.tGroup==='교양') lib+=reqHours(s); else major+=reqHours(s);
+    }
+  });
+  state.blocks.forEach(b=>{ if(b.group===g && (b.sem===0||b.sem===sem)) ch+=b.hours; });
+  return {major, lib, ch, total: major+lib+ch};
+}
 function renderMacro(){
-  const groups=allGroups();
+  const groups=allGroups().filter(g=>!DEPT_EXCLUDE.includes(g));
   const rows=groups.map(g=>({
     g,
     tc: state.teachers.filter(t=>t.group===g).length,
-    h1: groupReqHours(g,1),
-    h2: groupReqHours(g,2)
+    s1: deptHours(g,1),
+    s2: deptHours(g,2)
   }));
   const totT=rows.reduce((a,r)=>a+r.tc,0);
-  const tot1=rows.reduce((a,r)=>a+r.h1,0), tot2=rows.reduce((a,r)=>a+r.h2,0);
+  const tot1=rows.reduce((a,r)=>a+r.s1.total,0), tot2=rows.reduce((a,r)=>a+r.s2.total,0);
   const auto1 = totT? tot1/totT : 16, auto2 = totT? tot2/totT : 16;
   const manual = state.macroTarget;
   const t1 = manual!=null ? manual : auto1;
   const t2 = manual!=null ? manual : auto2;
+
+  // 미배정 교양·창체(실교과군에 배정되지 않은 시수)
+  const unLib=sem=>state.subjects.filter(s=>s.sem===sem && s.tGroup==='교양' && !REAL_DEPTS.includes(effGroup(s))).reduce((t,s)=>t+reqHours(s),0);
+  const unCh=sem=>state.blocks.filter(b=>!REAL_DEPTS.includes(b.group) && (b.sem===0||b.sem===sem)).reduce((t,b)=>t+b.hours,0);
 
   // 학기별 권장/증감/균형 계산
   const semCells=(h,tc,target)=>{
@@ -681,10 +698,12 @@ function renderMacro(){
     const hi=(tc===0&&h>0)||Math.abs(dev)>=0.15;
     return {avg, rec, bal, balc, dtxt, dcls, hi};
   };
+  const sub=(v)=> v?`<span class="small">${v}</span>`:'<span class="small" style="opacity:.4">0</span>';
 
   let html=`<div class="card"><h2>🗺️ 거시편성 — 교과군별 시수·교사 균형</h2>
-    <div class="desc">권장 교사수와 증감은 <b>1학기·2학기 각각</b> 계산됩니다(권장 = 학기 시수 ÷ 기준 1인 시수). 창체·기타 블록과
-    교양 과목을 아래에서 교과군에 넣고 뺄 수 있으며, 기준 1인 시수와 편차 15% 이상인 교과군은 강조됩니다.</div>
+    <div class="desc">교양·창체는 별도 교과군이 아니라 각 교과군의 <b>배정시수(전공·교양·창체)</b>로 나누어 집계됩니다.
+    권장 교사수·증감은 <b>1학기·2학기 각각</b> 계산되며(권장 = 학기 계 ÷ 기준 1인 시수), 편차 15% 이상인 교과군은 강조됩니다.
+    아래에서 창체·교양을 각 교과군에 배정하면 해당 교과군의 창체·교양시수로 반영됩니다.</div>
     <div class="addrow">
       <label>기준 1인 시수 <input type="number" min="8" max="25" step="0.5" value="${manual!=null?manual:''}" placeholder="자동" onchange="app.setMacroTarget(this.value)"></label>
       <button class="btn btn-s" onclick="app.setMacroTarget('')">자동(1학기 ${auto1.toFixed(1)} · 2학기 ${auto2.toFixed(1)})</button>
@@ -692,27 +711,38 @@ function renderMacro(){
     </div>
     <div class="tbl-scroll" style="margin-top:10px"><table>
     <tr><th rowspan="2">교과군</th><th rowspan="2" class="num">교사수</th>
-      <th colspan="5" class="ctr" style="border-left:2px solid var(--line)">1학기 (기준 ${t1.toFixed(1)})</th>
-      <th colspan="5" class="ctr" style="border-left:2px solid var(--line)">2학기 (기준 ${t2.toFixed(1)})</th></tr>
-    <tr><th class="num" style="border-left:2px solid var(--line)">시수</th><th class="num">1인평균</th><th class="ctr">균형</th><th class="num">권장</th><th class="ctr">증감</th>
-      <th class="num" style="border-left:2px solid var(--line)">시수</th><th class="num">1인평균</th><th class="ctr">균형</th><th class="num">권장</th><th class="ctr">증감</th></tr>`;
+      <th colspan="7" class="ctr" style="border-left:2px solid var(--line)">1학기 (기준 ${t1.toFixed(1)})</th>
+      <th colspan="7" class="ctr" style="border-left:2px solid var(--line)">2학기 (기준 ${t2.toFixed(1)})</th></tr>
+    <tr>${['1','2'].map(()=>`<th class="num" style="border-left:2px solid var(--line)">전공</th><th class="num">교양</th><th class="num">창체</th><th class="num">계</th><th class="num">1인<br>평균</th><th class="num">권장</th><th class="ctr">증감</th>`).join('')}</tr>`;
   const bl='style="border-left:2px solid var(--line)"';
+  const semGroup=(d,c,tc)=>`
+      <td class="num" ${bl}>${sub(d.major)}</td><td class="num">${sub(d.lib)}</td><td class="num">${sub(d.ch)}</td>
+      <td class="num"><b>${d.total}</b></td><td class="num">${tc?c.avg.toFixed(1):'–'}</td>
+      <td class="num"><b>${c.rec}</b></td><td class="ctr"><span class="badge ${c.dcls}" title="${c.bal}">${c.dtxt}</span></td>`;
   for(const r of rows){
-    const c1=semCells(r.h1,r.tc,t1), c2=semCells(r.h2,r.tc,t2);
+    const c1=semCells(r.s1.total,r.tc,t1), c2=semCells(r.s2.total,r.tc,t2);
     html+=`<tr class="${c1.hi||c2.hi?'warnrow':''}">
       <td><b>${r.g}</b> <span class="small">${state.subjects.filter(s=>effGroup(s)===r.g).length}과목${state.blocks.some(b=>b.group===r.g)?'+블록':''}</span></td>
       <td class="num">${r.tc}</td>
-      <td class="num" ${bl}>${r.h1}</td><td class="num">${r.tc?c1.avg.toFixed(1):'–'}</td>
-      <td class="ctr"><span class="badge ${c1.balc}">${c1.bal}</span></td>
-      <td class="num"><b>${c1.rec}</b></td><td class="ctr"><span class="badge ${c1.dcls}">${c1.dtxt}</span></td>
-      <td class="num" ${bl}>${r.h2}</td><td class="num">${r.tc?c2.avg.toFixed(1):'–'}</td>
-      <td class="ctr"><span class="badge ${c2.balc}">${c2.bal}</span></td>
-      <td class="num"><b>${c2.rec}</b></td><td class="ctr"><span class="badge ${c2.dcls}">${c2.dtxt}</span></td></tr>`;
+      ${semGroup(r.s1,c1,r.tc)}
+      ${semGroup(r.s2,c2,r.tc)}</tr>`;
   }
+  const sumG=(sem,tot)=>{
+    const mj=rows.reduce((a,r)=>a+r['s'+sem].major,0), lb=rows.reduce((a,r)=>a+r['s'+sem].lib,0), ch=rows.reduce((a,r)=>a+r['s'+sem].ch,0);
+    return `<td class="num" ${bl}>${sub(mj)}</td><td class="num">${sub(lb)}</td><td class="num">${sub(ch)}</td>
+      <td class="num"><b>${tot}</b></td><td class="num">${totT?(tot/totT).toFixed(1):'–'}</td><td colspan="2"></td>`;
+  };
   html+=`<tr style="border-top:2px solid var(--line)"><td><b>합계</b></td><td class="num">${totT}</td>
-    <td class="num" ${bl}>${tot1}</td><td class="num">${totT?(tot1/totT).toFixed(1):'–'}</td><td colspan="3"></td>
-    <td class="num" ${bl}>${tot2}</td><td class="num">${totT?(tot2/totT).toFixed(1):'–'}</td><td colspan="3"></td></tr>`;
-  html+='</table></div></div>';
+    ${sumG(1,tot1)}${sumG(2,tot2)}</tr>`;
+  html+='</table></div>';
+  // 미배정 교양·창체 안내
+  const u1l=unLib(1),u2l=unLib(2),u1c=unCh(1),u2c=unCh(2);
+  if(u1l||u2l||u1c||u2c){
+    html+=`<div class="desc" style="margin-top:8px;color:var(--amber)">⚠️ 아직 교과군에 배정되지 않은 시수 —
+      교양: 1학기 ${u1l}h · 2학기 ${u2l}h / 창체: 1학기 ${u1c}h · 2학기 ${u2c}h.
+      아래에서 담당 교과군을 지정하면 해당 교과군의 교양·창체시수로 집계됩니다.</div>`;
+  }
+  html+='</div>';
 
   // 이동 가능한 수업: 창체·기타 블록 + 교양 과목
   const grpSel=groupSelectHTML;
