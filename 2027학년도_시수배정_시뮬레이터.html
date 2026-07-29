@@ -32,6 +32,16 @@ nav{background:var(--card);border-bottom:1px solid var(--line);position:sticky;t
 nav button{border:0;background:transparent;font-size:14px;font-weight:600;color:var(--sub);padding:13px 18px;cursor:pointer;
   border-bottom:2.5px solid transparent}
 nav button.on{color:var(--blue);border-bottom-color:var(--blue)}
+.groupbar{max-width:1400px;margin:0 auto;display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+  padding:8px 24px 10px;border-top:1px solid #eef1f6}
+.gb-label{font-size:11.5px;font-weight:700;color:var(--sub);margin-right:4px;white-space:nowrap}
+.gbtn{border:1px solid var(--line);background:#f8fafc;border-radius:9px;padding:4px 10px;cursor:pointer;
+  font-family:inherit;font-size:12px;line-height:1.35;text-align:left;display:inline-flex;gap:7px;align-items:center}
+.gbtn:hover{background:var(--blue-bg);border-color:#bfdbfe}
+.gbtn b{font-size:12px}
+.gbtn .gh{font-variant-numeric:tabular-nums;font-weight:700}
+.gbtn .gt{color:var(--sub);font-variant-numeric:tabular-nums}
+.gh.ok{color:var(--green)} .gh.mid{color:var(--amber)} .gh.hi{color:var(--red)}
 main{max-width:1400px;margin:0 auto;padding:20px 24px 80px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:18px;
   box-shadow:0 1px 3px rgba(16,24,40,.05)}
@@ -132,7 +142,9 @@ footer{max-width:1400px;margin:0 auto;padding:0 24px 40px;font-size:11.5px;color
   <button data-tab="subjects" class="on">① 과목·분반 설정</button>
   <button data-tab="teachers">② 교사 배정</button>
   <button data-tab="summary">③ 요약·검증</button>
-</div></nav>
+</div>
+<div class="groupbar" id="groupbar"></div>
+</nav>
 <main>
   <div id="tab-subjects"></div>
   <div id="tab-teachers" style="display:none"></div>
@@ -212,8 +224,29 @@ function teacherSemHours(t, sem){
 }
 function esc(x){ return String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+/* ---------- group status bar (모든 탭 상단 고정) ---------- */
+const GB_ORDER = ['국어','수학','영어','과학','사회','예체','제2외/한문','정보','교양','기타'];
+function renderGroupBar(){
+  const sem=state.sem;
+  const groups = GB_ORDER.filter(g => DATA.subjects.some(s=>s.tGroup===g) || DATA.teachers.some(t=>t.group===g));
+  let html=`<span class="gb-label">📊 ${sem}학기<br>교과군 현황</span>`;
+  for(const g of groups){
+    const subs = DATA.subjects.filter(s=>s.tGroup===g && s.sem===sem);
+    const req = subs.reduce((t,s)=>t+reqHours(s),0);
+    const ts = DATA.teachers.filter(t=>t.group===g);
+    const avg = ts.length ? req/ts.length : 0;
+    const lv = ts.length===0 ? '' : (avg>=17?'hi':(avg>=15?'mid':'ok'));
+    html+=`<button class="gbtn" onclick="app.gotoGroup('${g}')"
+      title="${g} · ${sem}학기 필요시수 ${req}시간 ÷ 교사 ${ts.length}명${ts.length?' = 1인 평균 '+avg.toFixed(1)+'시간':''} (클릭 시 교사 배정으로 이동)">
+      <b>${g}</b><span class="gh ${lv}">${req}h</span><span class="gt">${ts.length}명${ts.length?'·'+avg.toFixed(1):''}</span>
+    </button>`;
+  }
+  document.getElementById('groupbar').innerHTML=html;
+}
+
 /* ---------- render root ---------- */
 function render(){
+  renderGroupBar();
   document.querySelectorAll('#semtoggle button').forEach(b=>b.classList.toggle('on', +b.dataset.sem===state.sem));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.dataset.tab===state.tab));
   ['subjects','teachers','summary'].forEach(t=>{
@@ -482,6 +515,12 @@ const app = {
     save(); render();
   },
   setFilter(g){ state.teacherFilter=g; save(); render(); },
+  gotoGroup(g){
+    state.tab='teachers';
+    state.teacherFilter = DATA.teachers.some(t=>t.group===g) ? g : '전체';
+    save(); render();
+    window.scrollTo({top:0});
+  },
   toggleTeacher(id){ state.openTeacher = state.openTeacher===id?null:id; save(); render(); },
   pickSubj(sid){
     if(state.pickSubject===sid){ state.pickSubject=null; }
