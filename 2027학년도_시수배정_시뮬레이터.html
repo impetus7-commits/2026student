@@ -20,9 +20,9 @@ header{background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;padding:18p
 header h1{font-size:19px;font-weight:700;letter-spacing:-.3px}
 header .sub{font-size:12px;opacity:.85;width:100%}
 .spacer{flex:1}
-.semtoggle{display:flex;background:rgba(255,255,255,.15);border-radius:9px;padding:3px}
-.semtoggle button{border:0;background:transparent;color:#dbe6ff;font-weight:600;font-size:13px;padding:6px 16px;border-radius:7px;cursor:pointer}
-.semtoggle button.on{background:#fff;color:#1e3a8a}
+.semtoggle{display:flex;background:#eef2f7;border-radius:9px;padding:3px;align-self:center}
+#semtoggle button{border:0;background:transparent;color:var(--sub);font-weight:700;font-size:13px;padding:6px 16px;border-radius:7px;cursor:pointer;border-bottom:0}
+#semtoggle button.on{background:var(--blue);color:#fff;border-bottom:0}
 .hbtn{border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.1);color:#fff;font-size:12px;
   padding:6px 12px;border-radius:8px;cursor:pointer}
 .hbtn:hover{background:rgba(255,255,255,.22)}
@@ -127,10 +127,6 @@ footer{max-width:1400px;margin:0 auto;padding:0 24px 40px;font-size:11.5px;color
       <h1>📚 2027학년도 시수배정 시뮬레이터</h1>
     </div>
     <div class="spacer"></div>
-    <div class="semtoggle" id="semtoggle">
-      <button data-sem="1">1학기</button>
-      <button data-sem="2">2학기</button>
-    </div>
     <button class="hbtn" onclick="app.exportJSON()">💾 JSON 내보내기</button>
     <button class="hbtn" onclick="document.getElementById('importfile').click()">📂 가져오기</button>
     <button class="hbtn" onclick="app.exportCSV()">📊 CSV(교사별)</button>
@@ -145,6 +141,11 @@ footer{max-width:1400px;margin:0 auto;padding:0 24px 40px;font-size:11.5px;color
   <button data-tab="teachers">② 교사 배정</button>
   <button data-tab="summary">③ 요약·검증</button>
   <button data-tab="macro">④ 거시편성</button>
+  <div class="spacer"></div>
+  <div class="semtoggle" id="semtoggle">
+    <button data-sem="1">1학기</button>
+    <button data-sem="2">2학기</button>
+  </div>
 </div>
 <div class="groupbar" id="groupbar"></div>
 </nav>
@@ -308,7 +309,7 @@ function render(){
     if(nav) document.documentElement.style.setProperty('--navh', nav.offsetHeight+'px');
   });
   document.querySelectorAll('#semtoggle button').forEach(b=>b.classList.toggle('on', +b.dataset.sem===state.sem));
-  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on', b.dataset.tab===state.tab));
+  document.querySelectorAll('nav button[data-tab]').forEach(b=>b.classList.toggle('on', b.dataset.tab===state.tab));
   ['subjects','teachers','summary','macro'].forEach(t=>{
     document.getElementById('tab-'+t).style.display = state.tab===t?'':'none';
   });
@@ -945,7 +946,7 @@ document.getElementById('importfile').addEventListener('change', ev=>{
   r.readAsText(f); ev.target.value='';
 });
 /* nav & sem toggle */
-document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{ state.tab=b.dataset.tab; save(); render(); }));
+document.querySelectorAll('nav button[data-tab]').forEach(b=>b.addEventListener('click',()=>{ state.tab=b.dataset.tab; save(); render(); }));
 document.querySelectorAll('#semtoggle button').forEach(b=>b.addEventListener('click',()=>{ state.sem=+b.dataset.sem; save(); render(); }));
 
 render();
