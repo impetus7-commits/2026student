@@ -178,7 +178,7 @@ function freshState(){
     showAllGroups: true,
     teachers: DATA.teachers.map(t=>({...t})),   // 편집 가능한 교사 명단
     subjects: DATA.subjects.map(s=>({...s})),   // 편집 가능한 과목
-    blocks: DATA.blocks.map(b=>({...b, group:b.defaultGroup})),   // 창체·기타 편성 블록
+    blocks: DATA.blocks.map(b=>({...b, group:b.defaultGroup, sem:(b.sem!=null?b.sem:0)})),   // 창체·기타 편성 블록 (sem 0=연간)
     subjGroupOverride: {},    // subjectId -> 거시편성에서 재배치된 교과군
     macroTarget: null,        // 거시편성 기준 1인 시수(null=자동)
     capacity2: DATA.defaultCapacity,
@@ -188,18 +188,21 @@ function freshState(){
       hours:x.hours, sem:0, note:x.reason||''})),   // sem 0 = 연간(1·2학기 공통)
     nextId: 1,
     nextTid: 1,
-    nextSid: 1
+    nextSid: 1,
+    nextBid: 1
   };
 }
 function load(){
   try{ const s = JSON.parse(localStorage.getItem(LS_KEY)); if(!(s && s.assignments)) return null;
     if(!s.teachers) s.teachers = DATA.teachers.map(t=>({...t}));   // 구버전 호환
     if(!s.subjects) s.subjects = DATA.subjects.map(x=>({...x}));
-    if(!s.blocks) s.blocks = DATA.blocks.map(b=>({...b, group:b.defaultGroup}));
+    if(!s.blocks) s.blocks = DATA.blocks.map(b=>({...b, group:b.defaultGroup, sem:(b.sem!=null?b.sem:0)}));
+    s.blocks.forEach(b=>{ if(b.sem==null) b.sem=0; });
     if(!s.subjGroupOverride) s.subjGroupOverride = {};
     if(s.macroTarget===undefined) s.macroTarget = null;
     if(s.nextTid==null) s.nextTid = 1;
     if(s.nextSid==null) s.nextSid = 1;
+    if(s.nextBid==null) s.nextBid = 1;
     return s;
   } catch(e){ return null; }
 }
@@ -235,8 +238,15 @@ function allGroups(){
 function groupReqHours(g, sem){
   let h=0;
   state.subjects.forEach(s=>{ if(s.sem===sem && effGroup(s)===g) h+=reqHours(s); });
-  state.blocks.forEach(b=>{ if(b.group===g) h+=b.hours; });   // 블록은 학기 공통
+  state.blocks.forEach(b=>{ if(b.group===g && (b.sem===0||b.sem===sem)) h+=b.hours; });
   return h;
+}
+// 공용 교과군 선택 드롭다운 (미집계 포함)
+function groupSelectHTML(cur, onchange){
+  const none = !cur || cur==='__none__';
+  const opts=BASE_GROUPS.map(g=>`<option value="${g}" ${cur===g?'selected':''}>${g}</option>`).join('')
+    +`<option value="__none__" ${none?'selected':''}>(미집계)</option>`;
+  return `<select onchange="${onchange}">${opts}</select>`;
 }
 
 function sections(s){
@@ -364,7 +374,32 @@ function renderSubjects(){
           <button class="btn btn-s" style="padding:4px 8px;color:var(--red)" onclick="app.deleteSubject('${s.id}')" title="삭제">🗑</button></td></tr>`;
       if(state.editSubject===s.id) html+=`<tr><td colspan="12">${subjectEditor(s)}</td></tr>`;
     }
-    html+='</table></div></div>';
+    html+='</table></div>';
+
+    // 창체·기타 (창의적 체험활동) — 학년·학기별
+    const blks = state.blocks.filter(b=>b.grade===grade && (b.sem===0||b.sem===sem));
+    const bhr = blks.reduce((t,b)=>t+b.hours,0);
+    html+=`<div style="margin-top:16px"><div class="grade-h">
+      <h4 style="font-size:13.5px;font-weight:700">🧩 창체·기타 (창의적 체험활동)</h4>
+      <span class="badge b-violet">${grade}학년 ${sem}학기 ${bhr}시간</span>
+      <span class="small">편성 교과군은 ④거시편성과 연동됩니다</span>
+      <button class="btn btn-p" style="margin-left:auto" onclick="app.addBlock(${grade},${sem})">＋ 창체 추가</button>
+    </div>
+    <div class="tbl-scroll"><table>
+    <tr><th>블록명</th><th class="num">시수</th><th class="ctr">적용</th><th>편성 교과군</th><th class="ctr">관리</th></tr>`;
+    if(!blks.length) html+='<tr><td colspan="5" class="small">등록된 창체·기타 블록이 없습니다. <b>＋ 창체 추가</b>로 등록하세요.</td></tr>';
+    for(const b of blks){
+      html+=`<tr>
+        <td><input type="text" value="${esc(b.name)}" onchange="app.setBlockName('${b.id}',this.value)" style="width:260px"></td>
+        <td class="num"><input type="number" min="0" max="40" value="${b.hours}" onchange="app.setBlockHours('${b.id}',this.value)"></td>
+        <td class="ctr"><select onchange="app.setBlockSem('${b.id}',this.value)">
+          <option value="0" ${b.sem===0?'selected':''}>연간</option>
+          <option value="1" ${b.sem===1?'selected':''}>1학기</option>
+          <option value="2" ${b.sem===2?'selected':''}>2학기</option></select></td>
+        <td>${groupSelectHTML(b.group, `app.setBlockGroup('${b.id}',this.value)`)}</td>
+        <td class="ctr"><button class="btn btn-s" style="padding:4px 8px;color:var(--red)" onclick="app.deleteBlock('${b.id}')" title="삭제">🗑</button></td></tr>`;
+    }
+    html+='</table></div></div></div>';
   }
   document.getElementById('tab-subjects').innerHTML=html;
 }
@@ -669,17 +704,12 @@ function renderMacro(){
   html+='</table></div></div>';
 
   // 이동 가능한 수업: 창체·기타 블록 + 교양 과목
-  const grpSel=(cur,onchange)=>{
-    const none = !cur || cur==='__none__';
-    const opts=BASE_GROUPS.map(g=>`<option value="${g}" ${cur===g?'selected':''}>${g}</option>`).join('')
-      +`<option value="__none__" ${none?'selected':''}>(미집계)</option>`;
-    return `<select onchange="${onchange}">${opts}</select>`;
-  };
+  const grpSel=groupSelectHTML;
   html+=`<div class="card"><h2>🧩 창체·기타 블록 편성</h2>
-    <div class="desc">각 블록을 담당할 교과군을 선택하세요. 선택 즉시 위 표와 상단 현황이 갱신됩니다. (미집계=어느 교과군에도 넣지 않음)</div>
-    <div class="tbl-scroll"><table><tr><th>학년</th><th>블록명</th><th class="num">시수</th><th>편성 교과군</th></tr>`;
+    <div class="desc">각 블록을 담당할 교과군을 선택하세요. 선택 즉시 위 표와 상단 현황이 갱신됩니다. (미집계=어느 교과군에도 넣지 않음 · 블록 추가/삭제는 ① 과목·분반 설정에서)</div>
+    <div class="tbl-scroll"><table><tr><th>학년</th><th>적용</th><th>블록명</th><th class="num">시수</th><th>편성 교과군</th></tr>`;
   for(const b of state.blocks){
-    html+=`<tr><td>${b.grade}학년</td><td>${esc(b.name)}</td><td class="num"><b>${b.hours}h</b></td>
+    html+=`<tr><td>${b.grade}학년</td><td>${b.sem===0?'연간':b.sem+'학기'}</td><td>${esc(b.name)}</td><td class="num"><b>${b.hours}h</b></td>
       <td>${grpSel(b.group, `app.setBlockGroup('${b.id}',this.value)`)}</td></tr>`;
   }
   html+='</table></div></div>';
@@ -707,6 +737,22 @@ const app = {
   // 거시편성
   setMacroTarget(v){ const n=parseFloat(v); state.macroTarget = isNaN(n)?null:Math.max(1,n); save(); render(); },
   setBlockGroup(id,g){ const b=state.blocks.find(x=>x.id===id); if(b){ b.group=g; save(); render(); } },
+  setBlockName(id,v){ const b=state.blocks.find(x=>x.id===id); if(b){ b.name=v.trim()||b.name; save(); render(); } },
+  setBlockHours(id,v){ const b=state.blocks.find(x=>x.id===id); if(b){ b.hours=Math.max(0,parseInt(v)||0); save(); render(); } },
+  setBlockSem(id,v){ const b=state.blocks.find(x=>x.id===id); if(b){ b.sem=parseInt(v); save(); render(); } },
+  addBlock(grade,sem){
+    const name=(prompt('추가할 창체·기타 블록명을 입력하세요.\n예: 창체(자율), 국제이해, 진학정보')||'').trim();
+    if(!name) return;
+    const hours=Math.max(0,parseInt(prompt('시수(주당 시간)를 입력하세요.','1'))||0);
+    state.blocks.push({id:'nb'+(state.nextBid++), grade, name, hours, group:'창체', sem});
+    save(); render();
+  },
+  deleteBlock(id){
+    const b=state.blocks.find(x=>x.id===id); if(!b) return;
+    if(!confirm(`'${b.name}' 블록을 삭제할까요?`)) return;
+    state.blocks=state.blocks.filter(x=>x.id!==id);
+    save(); render();
+  },
   setSubjGroup(id,g){
     const s=subjById[id]; if(!s) return;
     if(g===s.tGroup) delete state.subjGroupOverride[id];
