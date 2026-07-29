@@ -721,8 +721,11 @@ function renderMacro(){
       <td class="num"><b>${c.rec}</b></td><td class="ctr"><span class="badge ${c.dcls}" title="${c.bal}">${c.dtxt}</span></td>`;
   for(const r of rows){
     const c1=semCells(r.s1.total,r.tc,t1), c2=semCells(r.s2.total,r.tc,t2);
+    const majorCnt=state.subjects.filter(s=>effGroup(s)===r.g && s.tGroup!=='교양').length;
+    const blockCnt=state.blocks.filter(b=>b.group===r.g).length
+      + state.subjects.filter(s=>effGroup(s)===r.g && s.tGroup==='교양').length;
     html+=`<tr class="${c1.hi||c2.hi?'warnrow':''}">
-      <td><b>${r.g}</b> <span class="small">${state.subjects.filter(s=>effGroup(s)===r.g).length}과목${state.blocks.some(b=>b.group===r.g)?'+블록':''}</span></td>
+      <td><b>${r.g}</b> <span class="small">${majorCnt}과목${blockCnt?' + '+blockCnt+'블록':''}</span></td>
       <td class="num">${r.tc}</td>
       ${semGroup(r.s1,c1,r.tc)}
       ${semGroup(r.s2,c2,r.tc)}</tr>`;
