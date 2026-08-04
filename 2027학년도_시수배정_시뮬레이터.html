@@ -117,7 +117,19 @@ input:focus,select:focus{outline:2px solid #bfdbfe;border-color:var(--blue)}
 .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--sub);margin-top:10px}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
 footer{max-width:1400px;margin:0 auto;padding:0 24px 40px;font-size:11.5px;color:var(--sub)}
-@media print{header,nav,.filters,.addrow,.btn{display:none}}
+.linknum{border:0;background:transparent;font-family:inherit;font-size:13px;font-weight:700;color:var(--blue);
+  cursor:pointer;padding:0;border-bottom:1px dotted var(--blue);font-variant-numeric:tabular-nums}
+.linknum:hover{color:#1d4ed8;background:var(--blue-bg)}
+.popup{position:fixed;top:120px;left:50%;transform:translateX(-50%);width:min(620px,94vw);max-height:76vh;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;z-index:200;
+  box-shadow:0 18px 50px rgba(16,24,40,.30);display:flex;flex-direction:column;overflow:hidden}
+.popup-head{display:flex;align-items:center;gap:8px;padding:12px 16px;background:linear-gradient(135deg,#1e3a8a,#2563eb);
+  color:#fff;cursor:move;user-select:none}
+.popup-head span{font-size:14px;font-weight:700;flex:1}
+.popup-x{border:0;background:rgba(255,255,255,.18);color:#fff;font-size:13px;border-radius:7px;padding:4px 9px;cursor:pointer}
+.popup-x:hover{background:rgba(255,255,255,.34)}
+.popup-body{padding:14px 16px;overflow:auto}
+@media print{header,nav,.filters,.addrow,.btn,.popup{display:none}}
 </style>
 </head>
 <body>
@@ -155,6 +167,13 @@ footer{max-width:1400px;margin:0 auto;padding:0 24px 40px;font-size:11.5px;color
   <div id="tab-summary" style="display:none"></div>
   <div id="tab-macro" style="display:none"></div>
 </main>
+<div id="detailPopup" class="popup" style="display:none">
+  <div class="popup-head" id="popupHead">
+    <span id="popupTitle"></span>
+    <button class="popup-x" onclick="app.closeDetail()" title="닫기">✕</button>
+  </div>
+  <div class="popup-body" id="popupBody"></div>
+</div>
 <footer>
   ※ 지정과목은 전교생(1~9반)이 수강하는 것으로 계산합니다(분반수 = 학급수 9, 수동 조정 가능).
   선택과목 분반수는 <b>⌈신청인원 ÷ 분반정원⌉</b>으로 자동 계산되며 과목별로 직접 수정할 수 있습니다.
@@ -699,6 +718,8 @@ function renderMacro(){
     return {avg, rec, bal, balc, dtxt, dcls, hi};
   };
   const sub=(v)=> v?`<span class="small">${v}</span>`:'<span class="small" style="opacity:.4">0</span>';
+  const clk=(g,sem,cat,v)=> v?`<button class="linknum" onclick="app.showDetail('${g}',${sem},'${cat}')">${v}</button>`
+    :'<span class="small" style="opacity:.4">0</span>';
 
   let html=`<div class="card"><h2>🗺️ 거시편성 — 교과군별 시수·교사 균형</h2>
     <div class="desc">교양·창체는 별도 교과군이 아니라 각 교과군의 <b>배정시수(전공·교양·창체)</b>로 나누어 집계됩니다.
@@ -715,8 +736,8 @@ function renderMacro(){
       <th colspan="7" class="ctr" style="border-left:2px solid var(--line)">2학기 (기준 ${t2.toFixed(1)})</th></tr>
     <tr>${['1','2'].map(()=>`<th class="num" style="border-left:2px solid var(--line)">전공</th><th class="num">교양</th><th class="num">창체</th><th class="num">계</th><th class="num">1인<br>평균</th><th class="num">권장</th><th class="ctr">증감</th>`).join('')}</tr>`;
   const bl='style="border-left:2px solid var(--line)"';
-  const semGroup=(d,c,tc)=>`
-      <td class="num" ${bl}>${sub(d.major)}</td><td class="num">${sub(d.lib)}</td><td class="num">${sub(d.ch)}</td>
+  const semGroup=(g,sem,d,c,tc)=>`
+      <td class="num" ${bl}>${clk(g,sem,'major',d.major)}</td><td class="num">${clk(g,sem,'lib',d.lib)}</td><td class="num">${clk(g,sem,'ch',d.ch)}</td>
       <td class="num"><b>${d.total}</b></td><td class="num">${tc?c.avg.toFixed(1):'–'}</td>
       <td class="num"><b>${c.rec}</b></td><td class="ctr"><span class="badge ${c.dcls}" title="${c.bal}">${c.dtxt}</span></td>`;
   for(const r of rows){
@@ -727,8 +748,8 @@ function renderMacro(){
     html+=`<tr class="${c1.hi||c2.hi?'warnrow':''}">
       <td><b>${r.g}</b> <span class="small">${majorCnt}과목${blockCnt?' + '+blockCnt+'블록':''}</span></td>
       <td class="num">${r.tc}</td>
-      ${semGroup(r.s1,c1,r.tc)}
-      ${semGroup(r.s2,c2,r.tc)}</tr>`;
+      ${semGroup(r.g,1,r.s1,c1,r.tc)}
+      ${semGroup(r.g,2,r.s2,c2,r.tc)}</tr>`;
   }
   const sumG=(sem,tot)=>{
     const mj=rows.reduce((a,r)=>a+r['s'+sem].major,0), lb=rows.reduce((a,r)=>a+r['s'+sem].lib,0), ch=rows.reduce((a,r)=>a+r['s'+sem].ch,0);
@@ -780,6 +801,50 @@ const app = {
   clearOverrides(){ if(confirm('모든 과목의 분반수를 자동 계산값으로 되돌릴까요?')){ state.secOverride={}; save(); render(); } },
   // 거시편성
   setMacroTarget(v){ const n=parseFloat(v); state.macroTarget = isNaN(n)?null:Math.max(1,n); save(); render(); },
+  showDetail(g, sem, cat){
+    const catName={major:'전공',lib:'교양',ch:'창체'}[cat];
+    let body='';
+    if(cat==='ch'){
+      const list=state.blocks.filter(b=>b.group===g && (b.sem===0||b.sem===sem))
+        .sort((a,b)=>a.grade-b.grade);
+      const sum=list.reduce((t,b)=>t+b.hours,0);
+      body=`<div class="tbl-scroll"><table>
+        <tr><th>학년</th><th>블록명</th><th class="ctr">적용</th><th class="num">시수</th></tr>`
+        +(list.length?list.map(b=>`<tr><td>${b.grade}학년</td><td><b>${esc(b.name)}</b></td>
+            <td class="ctr">${b.sem===0?'연간':b.sem+'학기'}</td><td class="num"><b>${b.hours}h</b></td></tr>`).join('')
+          :'<tr><td colspan="4" class="ctr small">항목이 없습니다.</td></tr>')
+        +`<tr style="border-top:2px solid var(--line)"><td colspan="3"><b>합계 ${list.length}건</b></td><td class="num"><b>${sum}h</b></td></tr>`
+        +`</table></div>`;
+    } else {
+      const isLib = cat==='lib';
+      const list=state.subjects.filter(s=>s.sem===sem && effGroup(s)===g && (isLib? s.tGroup==='교양' : s.tGroup!=='교양'))
+        .sort((a,b)=>a.grade-b.grade || (a.selGroup||'').localeCompare(b.selGroup||''));
+      const secSum=list.reduce((t,s)=>t+sections(s),0);
+      const hSum=list.reduce((t,s)=>t+reqHours(s),0);
+      body=`<div class="tbl-scroll"><table>
+        <tr><th>학년</th><th>과목명</th><th>구분</th><th class="num">학점</th><th class="num">신청인원</th>
+        <th class="num">분반수<br>(학급)</th><th class="num">분반당</th><th class="num">필요시수</th><th>원래교과</th></tr>`
+        +(list.length?list.map(s=>{
+            const sec=sections(s), per=s.count!=null&&sec?(s.count/sec).toFixed(1):'–';
+            const moved=effGroup(s)!==s.tGroup;
+            return `<tr><td>${s.grade}학년</td><td><b>${esc(s.name)}</b></td>
+              <td>${s.kind==='선택'?'<span class="badge b-violet">그룹'+(s.selGroup||'선택')+'</span>':'<span class="badge b-gray">지정</span>'}</td>
+              <td class="num">${s.credit}</td><td class="num">${s.count!=null?s.count+'명':'전원'}</td>
+              <td class="num"><b>${sec}</b></td><td class="num">${per}</td><td class="num"><b>${reqHours(s)}h</b></td>
+              <td class="small">${moved?esc(s.tGroup)+' →':''} ${esc(s.kwGroup)}</td></tr>`;
+          }).join('')
+          :'<tr><td colspan="9" class="ctr small">항목이 없습니다.</td></tr>')
+        +`<tr style="border-top:2px solid var(--line)"><td colspan="5"><b>합계 ${list.length}과목</b></td>
+           <td class="num"><b>${secSum}</b></td><td></td><td class="num"><b>${hSum}h</b></td><td></td></tr>`
+        +`</table></div>`;
+    }
+    document.getElementById('popupTitle').textContent=`${g} · ${sem}학기 · ${catName} 상세`;
+    document.getElementById('popupBody').innerHTML=body;
+    const p=document.getElementById('detailPopup');
+    p.style.left=''; p.style.top=''; p.style.transform='';   // 다시 중앙 정렬
+    p.style.display='flex';
+  },
+  closeDetail(){ document.getElementById('detailPopup').style.display='none'; },
   setBlockGroup(id,g){ const b=state.blocks.find(x=>x.id===id); if(b){ b.group=g; save(); render(); } },
   setBlockName(id,v){ const b=state.blocks.find(x=>x.id===id); if(b){ b.name=v.trim()||b.name; save(); render(); } },
   setBlockHours(id,v){ const b=state.blocks.find(x=>x.id===id); if(b){ b.hours=Math.max(0,parseInt(v)||0); save(); render(); } },
@@ -991,6 +1056,24 @@ document.getElementById('importfile').addEventListener('change', ev=>{
 /* nav & sem toggle */
 document.querySelectorAll('nav button[data-tab]').forEach(b=>b.addEventListener('click',()=>{ state.tab=b.dataset.tab; save(); render(); }));
 document.querySelectorAll('#semtoggle button').forEach(b=>b.addEventListener('click',()=>{ state.sem=+b.dataset.sem; save(); render(); }));
+
+/* 상세 팝업 드래그 이동 */
+(function(){
+  const popup=document.getElementById('detailPopup'), head=document.getElementById('popupHead');
+  let drag=false, ox=0, oy=0;
+  head.addEventListener('mousedown', e=>{
+    if(e.target.classList.contains('popup-x')) return;
+    const r=popup.getBoundingClientRect();
+    popup.style.transform='none'; popup.style.left=r.left+'px'; popup.style.top=r.top+'px';
+    drag=true; ox=e.clientX-r.left; oy=e.clientY-r.top; document.body.style.userSelect='none'; e.preventDefault();
+  });
+  document.addEventListener('mousemove', e=>{
+    if(!drag) return;
+    popup.style.left=Math.max(0,Math.min(window.innerWidth-80,e.clientX-ox))+'px';
+    popup.style.top=Math.max(0,Math.min(window.innerHeight-40,e.clientY-oy))+'px';
+  });
+  document.addEventListener('mouseup', ()=>{ drag=false; document.body.style.userSelect=''; });
+})();
 
 render();
 </script>
