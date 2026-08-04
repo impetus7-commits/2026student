@@ -722,6 +722,7 @@ function renderMacro(){
       <label>기준 1인 시수 <input type="number" min="8" max="25" step="0.5" value="${manual!=null?manual:''}" placeholder="자동" onchange="app.setMacroTarget(this.value)"></label>
       <button class="btn btn-s" onclick="app.setMacroTarget('')">자동(1학기 ${auto1.toFixed(1)} · 2학기 ${auto2.toFixed(1)})</button>
       <span class="small">${manual!=null?'수동 기준 '+manual+'시간 적용 중':'각 학기 전체 평균을 기준으로 사용'}</span>
+      <button class="btn btn-p" style="margin-left:auto" onclick="app.report()">📑 분석 보고서 출력</button>
     </div>
     <div class="tbl-scroll" style="margin-top:10px"><table>
     <tr><th rowspan="2">교과군</th><th rowspan="2" class="num">교사수</th>
@@ -788,12 +789,123 @@ function renderMacro(){
   document.getElementById('tab-macro').innerHTML=html;
 }
 
+/* ---------- 거시편성 분석 보고서 ---------- */
+function macroReport(sem){
+  // 교과군 baseline: 전공시수(major)만, 교사수(tc)
+  const depts=REAL_DEPTS.filter(g=>state.teachers.some(t=>t.group===g) || state.subjects.some(s=>s.tGroup===g));
+  const rows=depts.map(g=>{
+    const major=state.subjects.filter(s=>s.sem===sem && s.tGroup===g && s.tGroup!=='교양').reduce((t,s)=>t+reqHours(s),0);
+    const tc=state.teachers.filter(t=>t.group===g).length;
+    return {g, major, tc};
+  });
+  // 유연 시수 풀: 전체 교양 과목 + 전체 창체 블록
+  const poolLib=state.subjects.filter(s=>s.sem===sem && s.tGroup==='교양').reduce((t,s)=>t+reqHours(s),0);
+  const poolCh=state.blocks.filter(b=>b.sem===0||b.sem===sem).reduce((t,b)=>t+b.hours,0);
+  const pool=poolLib+poolCh;
+  const totT=rows.reduce((a,r)=>a+r.tc,0);
+  const totMajor=rows.reduce((a,r)=>a+r.major,0);
+  const target = totT? (totMajor+pool)/totT : 16;   // 유연시수까지 균등 분배 시 목표 1인 시수
+  rows.forEach(r=>{
+    r.avg0 = r.tc? r.major/r.tc : 0;
+    r.spare = Math.max(0, target*r.tc - r.major);    // 목표까지 여유(흡수 가능) 시수
+    r.over = Math.max(0, r.major - target*r.tc);     // 목표 초과분
+  });
+  const sumSpare=rows.reduce((a,r)=>a+r.spare,0);
+  // 안1: 여유에 비례 배분(완전 균형)
+  const plan1=rows.map(r=>({g:r.g, add: sumSpare? pool*r.spare/sumSpare : 0}));
+  plan1.forEach((p,i)=>{ p.after=rows[i].major+p.add; p.avg=rows[i].tc? p.after/rows[i].tc : 0; });
+  // 안2: 여유 상위 교과군 집중(여유 큰 순서로 목표까지 채움)
+  const order=[...rows].sort((a,b)=>b.spare-a.spare);
+  let rem=pool; const plan2map={};
+  for(const r of order){ if(rem<=0) break; const take=Math.min(r.spare, rem); plan2map[r.g]=take; rem-=take; }
+  const plan2=order.filter(r=>plan2map[r.g]>0).map(r=>({g:r.g, add:plan2map[r.g], avg:(r.major+plan2map[r.g])/r.tc}));
+  // 안3: 창체·교양 전담 교사 신설
+  const dedicated = target? Math.ceil(pool/target) : 0;
+  return {sem, rows, poolLib, poolCh, pool, totT, totMajor, target, sumSpare, plan1, plan2, dedicated,
+    over: rows.filter(r=>r.over>0).sort((a,b)=>b.over-a.over),
+    spareTop: [...rows].sort((a,b)=>b.spare-a.spare).filter(r=>r.spare>0)};
+}
+function macroReportHTML(){
+  const R1=macroReport(1), R2=macroReport(2);
+  const f=n=>Number.isInteger(n)?n:n.toFixed(1);
+  const now=new Date().toLocaleString('ko-KR');
+  const semSec=(R)=>{
+    const diag=R.rows.map(r=>{
+      const st = r.tc===0? '<b style="color:#b45309">교사없음</b>'
+        : (r.avg0>=R.target*1.1?'<b style="color:#dc2626">과다</b>':(r.avg0<=R.target*0.9?'<b style="color:#2563eb">여유</b>':'적정'));
+      return `<tr><td>${r.g}</td><td class="n">${r.major}</td><td class="n">${r.tc}</td><td class="n">${r.tc?f(r.avg0):'–'}</td><td>${st}</td>
+        <td class="n">${r.spare>0?'+'+f(r.spare):'-'}</td><td class="n">${r.over>0?'▲'+f(r.over):'-'}</td></tr>`;
+    }).join('');
+    const p1=R.plan1.filter(p=>p.add>0.5).map(p=>`<tr><td>${p.g}</td><td class="n">+${f(p.add)}h</td><td class="n">${f(p.after)}h</td><td class="n">${f(p.avg)}</td></tr>`).join('');
+    const p2=R.plan2.map(p=>`<tr><td>${p.g}</td><td class="n">+${f(p.add)}h</td><td class="n">${f(p.avg)}</td></tr>`).join('');
+    const overTxt=R.over.length?R.over.map(r=>`${r.g}(▲${f(r.over)}h)`).join(', '):'없음';
+    const spareTxt=R.spareTop.length?R.spareTop.slice(0,4).map(r=>`${r.g}(+${f(r.spare)}h)`).join(', '):'없음';
+    return `<h2>${R.sem}학기 분석</h2>
+    <p class="k">교과 전공시수 합 <b>${R.totMajor}h</b> · 교사 <b>${R.totT}명</b> · 유연시수(교양 ${R.poolLib}h + 창체 ${R.poolCh}h = <b>${R.pool}h</b>) ·
+    균형 목표 1인시수 <b>${f(R.target)}h</b></p>
+    <h3>① 현황 진단 (전공시수 기준)</h3>
+    <table><tr><th>교과군</th><th class="n">전공시수</th><th class="n">교사수</th><th class="n">1인평균</th><th>상태</th><th class="n">여유</th><th class="n">초과</th></tr>${diag}</table>
+    <p class="k">· 부담 과다: <b>${overTxt}</b> &nbsp;·&nbsp; 여유 큰 교과군: <b>${spareTxt}</b></p>
+    <h3>추천안 A — 완전 균형(여유 비례 배분)</h3>
+    <p class="k">유연시수 ${R.pool}h를 여유가 큰 교과군에 비례 배분해 전 교과군 1인시수를 목표(${f(R.target)}h)에 수렴시킵니다. 추가 교사 없이 현 인원으로 소화.</p>
+    <table><tr><th>교과군</th><th class="n">배정 유연시수</th><th class="n">배정 후 시수</th><th class="n">1인평균</th></tr>${p1||'<tr><td colspan="4">배분 대상 없음</td></tr>'}</table>
+    <h3>추천안 B — 여유 상위 교과군 집중</h3>
+    <p class="k">유연시수를 여유가 큰 소수 교과군(${R.spareTop.slice(0,3).map(r=>r.g).join('·')||'-'})에 몰아 담당 교과군 수를 줄여 시간표·업무를 단순화합니다.</p>
+    <table><tr><th>담당 교과군</th><th class="n">배정 유연시수</th><th class="n">1인평균</th></tr>${p2||'<tr><td colspan="3">배분 대상 없음</td></tr>'}</table>
+    <h3>추천안 C — 창체·교양 전담 교사 신설</h3>
+    <p class="k">교과군은 전공에 집중하고, 유연시수 ${R.pool}h는 전담 교사가 담당합니다. 목표 1인시수 ${f(R.target)}h 기준 <b>${R.dedicated}명</b> 필요
+    (상담·사서·보건 등 기존 창체 인력 ${state.teachers.filter(t=>t.group==='창체').length}명 활용 가능).</p>`;
+  };
+  const need1=R1.dedicated, need2=R2.dedicated;
+  return `<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8"><title>거시편성 분석 보고서</title>
+  <style>
+    body{font-family:-apple-system,"Malgun Gothic",sans-serif;color:#1c2333;max-width:900px;margin:24px auto;padding:0 20px;line-height:1.55}
+    h1{font-size:22px;border-bottom:3px solid #2563eb;padding-bottom:8px}
+    h2{font-size:18px;margin-top:26px;background:#eff4ff;padding:8px 12px;border-radius:8px;color:#1e3a8a}
+    h3{font-size:15px;margin-top:18px;color:#15803d}
+    table{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}
+    th,td{border:1px solid #d7deea;padding:6px 9px;text-align:left}
+    th{background:#f5f8fd}
+    td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+    p.k{font-size:13px;color:#41496b;margin:6px 0}
+    .top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+    .muted{color:#5b6478;font-size:12px}
+    .box{background:#fffbeb;border:1px solid #f5c94c;border-radius:8px;padding:12px 14px;margin-top:14px;font-size:13px}
+    .noprint button{border:0;background:#2563eb;color:#fff;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;font-weight:700}
+    @media print{.noprint{display:none}}
+  </style></head><body>
+  <div class="top"><h1 style="border:0">📑 2027학년도 거시편성 분석 보고서</h1>
+    <div class="noprint"><button onclick="window.print()">🖨 인쇄 / PDF 저장</button></div></div>
+  <p class="muted">생성 ${now} · 학교 지정과목·선택과목 신청현황 및 현재 교사 명단(${state.teachers.length}명) 기준</p>
+  <div class="box"><b>요약</b> — 유연시수(교양·창체)를 교사 수급 균형에 활용하는 것이 핵심입니다.
+  여유 있는 교과군이 유연시수를 흡수하면(안 A·B) 추가 교사 없이 균형이 가능하며,
+  전공 집중이 필요하면 전담 교사 신설(안 C)로 1학기 ${need1}명·2학기 ${need2}명 수준이 요구됩니다.
+  두 학기의 시수 편차가 큰 교과군은 학기별로 다른 안을 조합(안 D)하는 것이 현실적입니다.</div>
+  ${semSec(R1)}
+  ${semSec(R2)}
+  <h2>추천안 D — 학기별 혼합(종합 권고)</h2>
+  <p class="k">1·2학기 부담이 다른 교과군이 있으므로 단일 안보다 <b>학기별 조합</b>이 효과적입니다.</p>
+  <ul style="font-size:13px">
+    <li><b>공통 유연시수(창체 자율·상담·사서·보건)</b>: 성격상 전담 인력(창체군 ${state.teachers.filter(t=>t.group==='창체').length}명)이 연중 담당 — 안 C 부분 적용.</li>
+    <li><b>교과 성격 교양(진로·논술·정보 등)</b>: 관련 교과군 중 <u>여유가 큰 곳</u>에 우선 배정 — 안 A 적용. 1학기 여유: ${R1.spareTop.slice(0,3).map(r=>r.g).join('·')||'-'} / 2학기 여유: ${R2.spareTop.slice(0,3).map(r=>r.g).join('·')||'-'}.</li>
+    <li><b>부담 과다 교과군</b>(1학기: ${R1.over.map(r=>r.g).join('·')||'없음'} / 2학기: ${R2.over.map(r=>r.g).join('·')||'없음'})에는 유연시수를 배정하지 않고, 필요 시 비전공 교차배정 또는 시간강사로 보완.</li>
+    <li>연간 채용은 두 학기 중 큰 수요 기준으로 판단 — 전담 신설 시 <b>${Math.max(need1,need2)}명</b> 내외.</li>
+  </ul>
+  <p class="muted" style="margin-top:20px">※ 본 보고서는 현재 입력된 분반·교사·창체/교양 편성값으로 자동 산출된 시뮬레이션이며, 실제 배정은 교과 전문성·시간표 제약을 함께 고려해야 합니다.</p>
+  </body></html>`;
+}
+
 /* ---------- actions ---------- */
 const app = {
   setCapacity(v){ state.capacity=Math.max(5,parseInt(v)||DATA.defaultCapacity); save(); render(); },
   clearOverrides(){ if(confirm('모든 과목의 분반수를 자동 계산값으로 되돌릴까요?')){ state.secOverride={}; save(); render(); } },
   // 거시편성
   setMacroTarget(v){ const n=parseFloat(v); state.macroTarget = isNaN(n)?null:Math.max(1,n); save(); render(); },
+  report(){
+    const w=window.open('', '_blank');
+    if(!w){ alert('팝업이 차단되었습니다. 브라우저의 팝업 허용 후 다시 시도하세요.'); return; }
+    w.document.open(); w.document.write(macroReportHTML()); w.document.close();
+  },
   closeDetail(){ closeAllPopups(); },
   showDetail(g, sem, cat){
     const catName={major:'전공',lib:'교양',ch:'창체'}[cat];
