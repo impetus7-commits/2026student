@@ -167,13 +167,6 @@ footer{max-width:1400px;margin:0 auto;padding:0 24px 40px;font-size:11.5px;color
   <div id="tab-summary" style="display:none"></div>
   <div id="tab-macro" style="display:none"></div>
 </main>
-<div id="detailPopup" class="popup" style="display:none">
-  <div class="popup-head" id="popupHead">
-    <span id="popupTitle"></span>
-    <button class="popup-x" onclick="app.closeDetail()" title="닫기">✕</button>
-  </div>
-  <div class="popup-body" id="popupBody"></div>
-</div>
 <footer>
   ※ 지정과목은 전교생(1~9반)이 수강하는 것으로 계산합니다(분반수 = 학급수 9, 수동 조정 가능).
   선택과목 분반수는 <b>⌈신청인원 ÷ 분반정원⌉</b>으로 자동 계산되며 과목별로 직접 수정할 수 있습니다.
@@ -801,6 +794,7 @@ const app = {
   clearOverrides(){ if(confirm('모든 과목의 분반수를 자동 계산값으로 되돌릴까요?')){ state.secOverride={}; save(); render(); } },
   // 거시편성
   setMacroTarget(v){ const n=parseFloat(v); state.macroTarget = isNaN(n)?null:Math.max(1,n); save(); render(); },
+  closeDetail(){ closeAllPopups(); },
   showDetail(g, sem, cat){
     const catName={major:'전공',lib:'교양',ch:'창체'}[cat];
     let body='';
@@ -838,13 +832,8 @@ const app = {
            <td class="num"><b>${secSum}</b></td><td></td><td class="num"><b>${hSum}h</b></td><td></td></tr>`
         +`</table></div>`;
     }
-    document.getElementById('popupTitle').textContent=`${g} · ${sem}학기 · ${catName} 상세`;
-    document.getElementById('popupBody').innerHTML=body;
-    const p=document.getElementById('detailPopup');
-    p.style.left=''; p.style.top=''; p.style.transform='';   // 다시 중앙 정렬
-    p.style.display='flex';
+    openDetailPopup(`${g} · ${sem}학기 · ${catName} 상세`, body);
   },
-  closeDetail(){ document.getElementById('detailPopup').style.display='none'; },
   setBlockGroup(id,g){ const b=state.blocks.find(x=>x.id===id); if(b){ b.group=g; save(); render(); } },
   setBlockName(id,v){ const b=state.blocks.find(x=>x.id===id); if(b){ b.name=v.trim()||b.name; save(); render(); } },
   setBlockHours(id,v){ const b=state.blocks.find(x=>x.id===id); if(b){ b.hours=Math.max(0,parseInt(v)||0); save(); render(); } },
@@ -1057,23 +1046,50 @@ document.getElementById('importfile').addEventListener('change', ev=>{
 document.querySelectorAll('nav button[data-tab]').forEach(b=>b.addEventListener('click',()=>{ state.tab=b.dataset.tab; save(); render(); }));
 document.querySelectorAll('#semtoggle button').forEach(b=>b.addEventListener('click',()=>{ state.sem=+b.dataset.sem; save(); render(); }));
 
-/* 상세 팝업 드래그 이동 */
-(function(){
-  const popup=document.getElementById('detailPopup'), head=document.getElementById('popupHead');
+/* ---------- 상세 팝업 매니저 (최대 2개 동시) ---------- */
+let popups=[];
+function bringFront(el){ popups.forEach(p=>p.style.zIndex='200'); el.style.zIndex='201'; }
+function closePopup(el){ el.remove(); popups=popups.filter(p=>p!==el); }
+function closeAllPopups(){ popups.slice().forEach(closePopup); }
+function makePopupEl(){
+  const el=document.createElement('div'); el.className='popup';
+  el.innerHTML=`<div class="popup-head"><span class="popup-title"></span><button class="popup-x" title="닫기">✕</button></div><div class="popup-body"></div>`;
+  document.body.appendChild(el);
+  el.querySelector('.popup-x').addEventListener('click', ()=>closePopup(el));
+  el.addEventListener('mousedown', ()=>bringFront(el));
+  const head=el.querySelector('.popup-head');
   let drag=false, ox=0, oy=0;
   head.addEventListener('mousedown', e=>{
     if(e.target.classList.contains('popup-x')) return;
-    const r=popup.getBoundingClientRect();
-    popup.style.transform='none'; popup.style.left=r.left+'px'; popup.style.top=r.top+'px';
+    const r=el.getBoundingClientRect();
+    el.style.transform='none'; el.style.left=r.left+'px'; el.style.top=r.top+'px';
     drag=true; ox=e.clientX-r.left; oy=e.clientY-r.top; document.body.style.userSelect='none'; e.preventDefault();
   });
   document.addEventListener('mousemove', e=>{
     if(!drag) return;
-    popup.style.left=Math.max(0,Math.min(window.innerWidth-80,e.clientX-ox))+'px';
-    popup.style.top=Math.max(0,Math.min(window.innerHeight-40,e.clientY-oy))+'px';
+    el.style.left=Math.max(0,Math.min(window.innerWidth-80,e.clientX-ox))+'px';
+    el.style.top=Math.max(0,Math.min(window.innerHeight-40,e.clientY-oy))+'px';
   });
-  document.addEventListener('mouseup', ()=>{ drag=false; document.body.style.userSelect=''; });
-})();
+  document.addEventListener('mouseup', ()=>{ if(drag){ drag=false; document.body.style.userSelect=''; } });
+  return el;
+}
+function openDetailPopup(title, body){
+  let el;
+  if(popups.length>=2){ el=popups.shift(); popups.push(el); }   // 오래된 것 재사용(위치 유지)
+  else {
+    el=makePopupEl();
+    const slot=popups.length;   // 0 또는 1
+    el.style.transform='none';
+    if(slot===0){ el.style.left='3%'; el.style.right='auto'; }
+    else { el.style.left='auto'; el.style.right='3%'; }
+    el.style.top=(112+slot*24)+'px';
+    popups.push(el);
+  }
+  el.querySelector('.popup-title').textContent=title;
+  el.querySelector('.popup-body').innerHTML=body;
+  el.style.display='flex';
+  bringFront(el);
+}
 
 render();
 </script>
