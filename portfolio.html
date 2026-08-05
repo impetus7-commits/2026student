@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>주식 자산관리 시트</title>
+<style>
+  :root{
+    --bg:#0f1420; --panel:#171e2e; --panel2:#1e2740; --line:#2a3550;
+    --txt:#e8edf7; --muted:#93a0bd; --accent:#4f8cff; --accent2:#6fe3c4;
+    --up:#ff5d6c; --down:#3ecf8e; --gold:#f5b942; --shadow:rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Pretendard','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;
+    background:linear-gradient(160deg,#0c111c,#131a2b 60%,#0f1626);
+    color:var(--txt); line-height:1.55; padding:24px 16px 80px; min-height:100vh;
+  }
+  .wrap{max-width:1180px;margin:0 auto}
+  header.top{
+    display:flex;flex-wrap:wrap;align-items:center;gap:14px;justify-content:space-between;
+    margin-bottom:22px;padding:22px 24px;border-radius:18px;
+    background:linear-gradient(120deg,#1b2740,#141b2c);border:1px solid var(--line);
+    box-shadow:0 12px 30px var(--shadow);
+  }
+  header.top h1{font-size:22px;letter-spacing:-.3px;display:flex;align-items:center;gap:10px}
+  header.top .badge{font-size:11px;font-weight:700;color:#0c111c;background:var(--accent2);
+    padding:3px 9px;border-radius:999px}
+  header.top .meta{font-size:13px;color:var(--muted);text-align:right}
+  header.top .meta b{color:var(--accent2)}
+
+  /* KPI cards */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:24px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 18px;
+    box-shadow:0 6px 18px var(--shadow);position:relative;overflow:hidden}
+  .card::before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--accent)}
+  .card.c-eval::before{background:var(--accent2)}
+  .card.c-loss::before{background:var(--up)}
+  .card.c-div::before{background:var(--gold)}
+  .card.c-ret::before{background:#a78bfa}
+  .card .lbl{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .card .val{font-size:23px;font-weight:800;letter-spacing:-.5px}
+  .card .sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .pos{color:var(--down)} .neg{color:var(--up)}
+
+  section{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:18px 20px;margin-bottom:22px;box-shadow:0 6px 18px var(--shadow)}
+  section h2{font-size:16px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  section h2 .dot{width:9px;height:9px;border-radius:50%;background:var(--accent)}
+  section .desc{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:9px;font-weight:600;
+    font-size:13px;padding:8px 14px;transition:.15s;color:#fff}
+  .btn-add{background:var(--accent)} .btn-add:hover{filter:brightness(1.12)}
+  .btn-del{background:#33405f;color:var(--muted);padding:6px 10px;font-size:12px}
+  .btn-del:hover{background:var(--up);color:#fff}
+  .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--muted)}
+  .btn-ghost:hover{border-color:var(--accent);color:var(--txt)}
+  .rate-box{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+  .rate-box input{width:100px}
+
+  .tbl-scroll{overflow-x:auto;border-radius:12px;border:1px solid var(--line)}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
+  thead th{background:var(--panel2);color:var(--muted);font-weight:600;font-size:12px;
+    padding:10px 8px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+  thead th:first-child,thead th.tl{text-align:left}
+  tbody td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody td.tl{text-align:left}
+  tbody tr:hover{background:rgba(79,140,255,.06)}
+  tfoot td{padding:11px 8px;font-weight:800;background:var(--panel2);border-top:2px solid var(--accent);
+    text-align:right;white-space:nowrap}
+  tfoot td.tl{text-align:left;color:var(--accent2)}
+  input,select{background:#0e1626;border:1px solid var(--line);color:var(--txt);border-radius:7px;
+    padding:6px 8px;font-family:inherit;font-size:13px;width:100%;text-align:right}
+  select,input.tl{text-align:left}
+  input:focus,select:focus{outline:none;border-color:var(--accent);background:#0c1220}
+  td.calc{color:var(--accent2);font-variant-numeric:tabular-nums}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* guide */
+  .guide-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
+  .guide-item{display:flex;gap:10px;font-size:13px;color:#c6d0e6;padding:10px 12px;
+    background:var(--panel2);border-radius:10px;border:1px solid var(--line)}
+  .guide-item .n{flex:0 0 22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;
+    font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
+  .contact{margin-top:14px;font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:16px}
+  .contact a{color:var(--accent2);text-decoration:none}
+  .contact a:hover{text-decoration:underline}
+
+  .ref-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+  .ref-col h3{font-size:13px;color:var(--accent2);margin-bottom:8px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-size:12px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;
+    padding:4px 11px;color:#c6d0e6}
+  .chip .tk{color:var(--muted);font-size:11px;margin-left:4px}
+
+  footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:8px}
+  @media(max-width:640px){
+    header.top h1{font-size:18px}.card .val{font-size:19px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>📊 주식 자산관리 시트 <span class="badge">웹 대시보드</span></h1>
+    <div class="meta">
+      기준일 <b id="today"></b><br>
+      적용환율 <b id="rateDisp"></b> 원/$
+    </div>
+  </header>
+
+  <!-- KPI -->
+  <div class="kpis">
+    <div class="card c-buy"><div class="lbl">총 매입금</div><div class="val num" id="kBuy">0원</div><div class="sub">투입 원금</div></div>
+    <div class="card c-eval"><div class="lbl">평가금 (원)</div><div class="val num" id="kEval">0원</div><div class="sub" id="kEvalUsd">$0</div></div>
+    <div class="card c-loss"><div class="lbl">평가 손익</div><div class="val num" id="kPL">0원</div><div class="sub" id="kRet">수익률 0%</div></div>
+    <div class="card c-div"><div class="lbl">누적 배당금</div><div class="val num" id="kDiv">0원</div><div class="sub" id="kRecov">회수율 0%</div></div>
+    <div class="card c-ret"><div class="lbl">배당 반영 순손익</div><div class="val num" id="kNet">0원</div><div class="sub" id="kNetRet">순수익률 0%</div></div>
+  </div>
+
+  <!-- 보유 종목 -->
+  <section>
+    <h2><span class="dot"></span>보유 종목 현황</h2>
+    <p class="desc">종목명·티커·매입금·현재 시세·수량을 입력하면 평가금·손익·수익률이 자동 계산됩니다. (직접입력2번 종목현황 시트)</p>
+    <div class="toolbar">
+      <button class="btn-add" onclick="addHolding()">+ 종목 추가</button>
+      <button class="btn-ghost" onclick="resetAll()">전체 초기화</button>
+      <div class="rate-box">환율(원/$) <input type="number" id="rate" step="0.001" oninput="saveAndRender()"></div>
+    </div>
+    <div class="tbl-scroll">
+      <table id="hTable">
+        <thead>
+          <tr>
+            <th class="tl">계좌구분</th><th class="tl">주식종류</th><th class="tl">종목명</th><th class="tl">티커</th>
+            <th>매입금(원)</th><th>시세($)</th><th>수량</th>
+            <th>평가금($)</th><th>평가금(원)</th><th>손익(원)</th>
+            <th>누적배당(원)</th><th>수익률</th><th>회수율</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="hBody"></tbody>
+        <tfoot>
+          <tr>
+            <td class="tl" colspan="4">종합</td>
+            <td class="num" id="fBuy">0</td><td></td><td></td>
+            <td class="num" id="fEvalUsd">0</td><td class="num" id="fEvalKrw">0</td>
+            <td class="num" id="fPL">0</td><td class="num" id="fDiv">0</td>
+            <td class="num" id="fRet">-</td><td class="num" id="fRecov">-</td><td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="hint">※ 손익 = 평가금(원) − 매입금 · 수익률 = 손익 / 매입금 · 회수율 = 누적배당 / 매입금 · 누적배당은 아래 배당금 내역에서 종목명 기준으로 자동 합산됩니다.</p>
+  </section>
+
+  <!-- 배당금 -->
+  <section>
+    <h2><span class="dot" style="background:var(--gold)"></span>배당금 입금 내역</h2>
+    <p class="desc">배당금이 입금되면 기록하세요. 세금은 세율에 따라 자동 계산됩니다. (직접입력3번 배당금현황 시트)</p>
+    <div class="toolbar">
+      <button class="btn-add" onclick="addDividend()">+ 배당 추가</button>
+      <div class="rate-box">세율 <input type="number" id="taxRate" step="0.001" oninput="saveAndRender()"> (예: 0.154 = 15.4%)</div>
+    </div>
+    <div class="tbl-scroll">
+      <table id="dTable">
+        <thead>
+          <tr>
+            <th class="tl">연도</th><th class="tl">월</th><th class="tl">입금일</th>
+            <th class="tl">종목명</th><th class="tl">티커</th>
+            <th>원화(세전)</th><th>세금</th><th>실입금액(원)</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="dBody"></tbody>
+        <tfoot>
+          <tr>
+            <td class="tl" colspan="5">합계</td>
+            <td class="num" id="dfGross">0</td><td class="num" id="dfTax">0</td><td class="num" id="dfNet">0</td><td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- 참고 데이터 -->
+  <section>
+    <h2><span class="dot" style="background:#a78bfa"></span>참고 목록 (드롭다운)</h2>
+    <p class="desc">종목 입력 시 참고할 계좌·종류·종목 목록입니다. (직접입력1번 드롭다운 시트)</p>
+    <div class="ref-grid">
+      <div class="ref-col"><h3>계좌구분</h3><div class="chips" id="refAcc"></div></div>
+      <div class="ref-col"><h3>주식종류</h3><div class="chips" id="refType"></div></div>
+      <div class="ref-col" style="grid-column:1/-1"><h3>종목 · 티커</h3><div class="chips" id="refSym"></div></div>
+    </div>
+  </section>
+
+  <!-- 사용법 -->
+  <section>
+    <h2><span class="dot" style="background:var(--accent2)"></span>사용 안내</h2>
+    <p class="desc">원본 '사용전필독' 시트의 안내입니다.</p>
+    <div class="guide-list" id="guide"></div>
+    <div class="contact">
+      <span>✉️ 메일 : <a href="mailto:wmpark1q@gmail.com">wmpark1q@gmail.com</a></span>
+      <span>▶️ 유튜브 : <a href="https://www.youtube.com/@bakchajang" target="_blank" rel="noopener">어쩌다 퇴사한, 박차장</a></span>
+    </div>
+    <p class="hint">입력한 내용은 이 브라우저에 자동 저장됩니다(localStorage). 원본 스프레드시트 템플릿을 웹으로 재구성한 페이지입니다.</p>
+  </section>
+
+  <footer>박차장 &amp; 장사건물주 자산관리 시트 · 웹 버전</footer>
+</div>
+
+<script>
+/* ---------- 참고 데이터 ---------- */
+const ACCOUNTS = ["일반계좌","연금저축","IRP","ISA"];
+const TYPES = ["개별주식","지수","커버드콜","배당주식","채권","금"];
+const SYMBOLS = [
+  ["GOLD","0064K0"],["QLD","QLD"],["NVDY","NVDY"],
+  ["kodex 배당커버드","441640"],["kodex 미성장커버드","0144L0"],
+  ["tiger s&p커버드","482730"],["삼성전자","005930"],["하이닉스","000660"]
+];
+const YEARS = ["26년","27년","28년","29년"];
+const MONTHS = ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"];
+const GUIDE = [
+  "반드시 사본을 만든 뒤 실제 보유종목을 입력하세요.",
+  "직접입력 시트 3개(드롭다운·종목현황·배당금현황)는 직접 입력합니다.",
+  "먼저 종목명(편한 이름)과 티커(정확하게)를 참고 목록에 추가합니다.",
+  "종목현황에서 계좌·종류·종목을 선택하고, 매입금·시세·수량을 입력합니다.",
+  "배당금이 입금되면 배당금현황에 정보를 기록합니다.",
+  "동일 종목을 다른 계좌로 매수하면 종목명을 구분하세요. 예) 미성장커버드콜(연금)",
+  "history 시트는 1일 단위로 자동 기록됩니다.",
+  "궁금한 점은 메일이나 개인 채널로 문의하세요."
+];
+
+/* 배당 기본 예시 (원본 3건) */
+const DEFAULT_DIVS = [
+  {y:"26년",m:"7월",d:"2026-07-02",name:"kodex 배당커버드",tk:"441640",gross:321000},
+  {y:"26년",m:"7월",d:"2026-07-02",name:"kodex 미성장커버드",tk:"0144L0",gross:420000},
+  {y:"26년",m:"7월",d:"2026-07-02",name:"NVDY",tk:"NVDY",gross:1000000},
+];
+
+/* ---------- 상태 ---------- */
+let state = load() || {
+  rate: 1427.885,
+  tax: 0.154,
+  holdings: [
+    {acc:"ISA",type:"배당주식",name:"kodex 배당커버드",tk:"441640",buy:0,price:0,qty:0},
+    {acc:"연금저축",type:"커버드콜",name:"kodex 미성장커버드",tk:"0144L0",buy:0,price:0,qty:0},
+    {acc:"일반계좌",type:"커버드콜",name:"NVDY",tk:"NVDY",buy:0,price:0,qty:0},
+  ],
+  dividends: DEFAULT_DIVS.map(x=>({...x}))
+};
+
+function save(){localStorage.setItem('portfolioSheet', JSON.stringify(state));}
+function load(){try{return JSON.parse(localStorage.getItem('portfolioSheet'));}catch(e){return null;}}
+
+/* ---------- 포맷 ---------- */
+const won = n => Math.round(n).toLocaleString('ko-KR')+'원';
+const usd = n => '$'+(Math.round(n*100)/100).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct = n => (n>=0?'+':'')+(n*100).toFixed(2)+'%';
+const clsPL = n => n>=0?'pos':'neg';
+
+/* ---------- 계산 ---------- */
+function divByName(name){
+  return state.dividends.filter(d=>d.name===name)
+    .reduce((s,d)=> s + (Number(d.gross)||0)*(1-state.tax), 0);
+}
+
+/* ---------- 렌더 ---------- */
+function render(){
+  document.getElementById('today').textContent = new Date().toISOString().slice(0,10);
+  document.getElementById('rate').value = state.rate;
+  document.getElementById('taxRate').value = state.tax;
+  document.getElementById('rateDisp').textContent = Number(state.rate).toLocaleString('ko-KR');
+
+  // holdings
+  const hb = document.getElementById('hBody'); hb.innerHTML='';
+  let tBuy=0,tUsd=0,tKrw=0,tDiv=0;
+  state.holdings.forEach((h,i)=>{
+    const evalUsd = (Number(h.price)||0)*(Number(h.qty)||0);
+    const evalKrw = evalUsd*Number(state.rate);
+    const buy = Number(h.buy)||0;
+    const pl = evalKrw - buy;              // +이익 / -손실
+    const div = divByName(h.name);
+    const ret = buy>0 ? pl/buy : null;
+    const recov = buy>0 ? div/buy : null;
+    tBuy+=buy; tUsd+=evalUsd; tKrw+=evalKrw; tDiv+=div;
+
+    const tr=document.createElement('tr');
+    tr.innerHTML = `
+      <td class="tl">${selCell(ACCOUNTS,h.acc,'acc',i)}</td>
+      <td class="tl">${selCell(TYPES,h.type,'type',i)}</td>
+      <td class="tl">${inp(h.name,'name',i,'text','tl',160)}</td>
+      <td class="tl">${inp(h.tk,'tk',i,'text','tl',90)}</td>
+      <td>${inp(h.buy,'buy',i,'number')}</td>
+      <td>${inp(h.price,'price',i,'number')}</td>
+      <td>${inp(h.qty,'qty',i,'number')}</td>
+      <td class="calc num">${usd(evalUsd)}</td>
+      <td class="calc num">${won(evalKrw)}</td>
+      <td class="num ${clsPL(pl)}">${won(pl)}</td>
+      <td class="calc num">${won(div)}</td>
+      <td class="num ${ret==null?'':clsPL(ret)}">${ret==null?'-':pct(ret)}</td>
+      <td class="num">${recov==null?'-':(recov*100).toFixed(1)+'%'}</td>
+      <td><button class="btn-del" onclick="delHolding(${i})">✕</button></td>`;
+    hb.appendChild(tr);
+  });
+  const tPL=tKrw-tBuy;
+  document.getElementById('fBuy').textContent=won(tBuy);
+  document.getElementById('fEvalUsd').textContent=usd(tUsd);
+  document.getElementById('fEvalKrw').textContent=won(tKrw);
+  document.getElementById('fPL').textContent=won(tPL);
+  document.getElementById('fPL').className='num '+clsPL(tPL);
+  document.getElementById('fDiv').textContent=won(tDiv);
+  document.getElementById('fRet').textContent=tBuy>0?pct(tPL/tBuy):'-';
+  document.getElementById('fRecov').textContent=tBuy>0?(tDiv/tBuy*100).toFixed(1)+'%':'-';
+
+  // dividends
+  const db=document.getElementById('dBody'); db.innerHTML='';
+  let dGross=0,dTax=0,dNet=0;
+  state.dividends.forEach((d,i)=>{
+    const g=Number(d.gross)||0, tax=g*state.tax, net=g-tax;
+    dGross+=g; dTax+=tax; dNet+=net;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="tl">${selCellD(YEARS,d.y,'y',i)}</td>
+      <td class="tl">${selCellD(MONTHS,d.m,'m',i)}</td>
+      <td class="tl">${inpD(d.d,'d',i,'date','tl',130)}</td>
+      <td class="tl">${inpD(d.name,'name',i,'text','tl',150)}</td>
+      <td class="tl">${inpD(d.tk,'tk',i,'text','tl',80)}</td>
+      <td>${inpD(d.gross,'gross',i,'number')}</td>
+      <td class="calc num">${won(tax)}</td>
+      <td class="calc num">${won(net)}</td>
+      <td><button class="btn-del" onclick="delDividend(${i})">✕</button></td>`;
+    db.appendChild(tr);
+  });
+  document.getElementById('dfGross').textContent=won(dGross);
+  document.getElementById('dfTax').textContent=won(dTax);
+  document.getElementById('dfNet').textContent=won(dNet);
+
+  // KPI
+  document.getElementById('kBuy').textContent=won(tBuy);
+  document.getElementById('kEval').textContent=won(tKrw);
+  document.getElementById('kEvalUsd').textContent=usd(tUsd);
+  const kPL=document.getElementById('kPL'); kPL.textContent=won(tPL); kPL.className='val num '+clsPL(tPL);
+  document.getElementById('kRet').textContent='수익률 '+(tBuy>0?pct(tPL/tBuy):'0%');
+  document.getElementById('kDiv').textContent=won(dNet);
+  document.getElementById('kRecov').textContent='회수율 '+(tBuy>0?(dNet/tBuy*100).toFixed(1)+'%':'0%');
+  const net=tPL+dNet;
+  const kNet=document.getElementById('kNet'); kNet.textContent=won(net); kNet.className='val num '+clsPL(net);
+  document.getElementById('kNetRet').textContent='순수익률 '+(tBuy>0?pct(net/tBuy):'0%');
+}
+
+/* ---------- 입력 위젯 ---------- */
+function inp(v,f,i,t='number',cls='',w){return `<input class="${cls}" type="${t}" value="${v??''}" ${w?`style="min-width:${w}px"`:''} onchange="upd(${i},'${f}',this.value)">`;}
+function selCell(opts,v,f,i){return `<select onchange="upd(${i},'${f}',this.value)">${opts.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`;}
+function inpD(v,f,i,t='number',cls='',w){return `<input class="${cls}" type="${t}" value="${v??''}" ${w?`style="min-width:${w}px"`:''} onchange="updD(${i},'${f}',this.value)">`;}
+function selCellD(opts,v,f,i){return `<select onchange="updD(${i},'${f}',this.value)">${opts.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`;}
+
+/* ---------- 이벤트 ---------- */
+function upd(i,f,v){state.holdings[i][f]=v;saveAndRender();}
+function updD(i,f,v){state.dividends[i][f]=v;saveAndRender();}
+function addHolding(){state.holdings.push({acc:ACCOUNTS[0],type:TYPES[0],name:"",tk:"",buy:0,price:0,qty:0});saveAndRender();}
+function delHolding(i){state.holdings.splice(i,1);saveAndRender();}
+function addDividend(){state.dividends.push({y:YEARS[0],m:MONTHS[new Date().getMonth()],d:new Date().toISOString().slice(0,10),name:"",tk:"",gross:0});saveAndRender();}
+function delDividend(i){state.dividends.splice(i,1);saveAndRender();}
+function saveAndRender(){
+  state.rate=Number(document.getElementById('rate').value)||0;
+  state.tax=Number(document.getElementById('taxRate').value)||0;
+  save();render();
+}
+function resetAll(){
+  if(confirm('입력한 모든 데이터를 지우고 초기 상태로 되돌립니다. 계속할까요?')){
+    localStorage.removeItem('portfolioSheet');location.reload();
+  }
+}
+
+/* ---------- 정적 목록 ---------- */
+function fillRef(){
+  document.getElementById('refAcc').innerHTML=ACCOUNTS.map(a=>`<span class="chip">${a}</span>`).join('');
+  document.getElementById('refType').innerHTML=TYPES.map(a=>`<span class="chip">${a}</span>`).join('');
+  document.getElementById('refSym').innerHTML=SYMBOLS.map(([n,t])=>`<span class="chip">${n}<span class="tk">${t}</span></span>`).join('');
+  document.getElementById('guide').innerHTML=GUIDE.map((g,i)=>`<div class="guide-item"><div class="n">${i+1}</div><div>${g}</div></div>`).join('');
+}
+
+fillRef();
+render();
+</script>
+</body>
+</html>
