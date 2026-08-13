@@ -555,7 +555,11 @@ function inpD(v,f,i,t='number',cls='',w){return `<input class="${cls}" type="${t
 function selCellD(opts,v,f,i){return `<select onchange="updD(${i},'${f}',this.value)">${opts.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`;}
 
 /* ---------- 이벤트 ---------- */
-function upd(i,f,v){state.holdings[i][f]=v;saveAndRender();}
+function upd(i,f,v){
+  state.holdings[i][f]=v;
+  if(f==='tk'||f==='market'){ delete state.holdings[i]._ysym; delete state.holdings[i]._q; }
+  saveAndRender();
+}
 function updD(i,f,v){state.dividends[i][f]=v;saveAndRender();}
 function addHolding(market){state.holdings.push({market:market||'US',acc:ACCOUNTS[0],type:TYPES[0],name:"",tk:"",buy:0,price:0,qty:0});saveAndRender();}
 function delHolding(i){state.holdings.splice(i,1);saveAndRender();}
@@ -606,11 +610,50 @@ async function fetchViaProxies(url){
   }
   throw lastErr||new Error('all proxies failed');
 }
-async function fetchOneQuote(sym){
+// Stooq(CSV) 시세 조회
+async function stooqQuote(sym){
   const text=await fetchViaProxies(stooqUrl(sym));
   const q=parseStooqCsv(text);
-  if(!q) throw new Error('no quote');
+  if(!q) throw new Error('stooq no quote');
   return q;
+}
+// Yahoo(JSON chart) 시세 조회 — 한국 주식·ETF 커버리지 넓음, 지연 시세
+async function yahooQuote(sym){
+  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?range=1d&interval=1d`;
+  const text=await fetchViaProxies(url);
+  const data=JSON.parse(text);
+  const meta=data && data.chart && data.chart.result && data.chart.result[0] && data.chart.result[0].meta;
+  const price=meta && (meta.regularMarketPrice ?? meta.previousClose);
+  if(!isFinite(price)||price<=0) throw new Error('yahoo no price');
+  return {price, date:'', time:'실시간(지연)'};
+}
+// 종목 1건 시세: 시장별 다중 소스 폴백. 성공한 소스 표기 반환.
+async function fetchOneQuote(h){
+  const t=(h.tk||'').trim();
+  if(!t) throw new Error('no ticker');
+  const errs=[];
+  if(h.market==='KR'){
+    // 1) Yahoo .KS/.KQ (한 번 성공하면 접미사 캐시) → 2) Stooq .kr 폴백
+    const cands = h._ysym ? [h._ysym] : [t+'.KS', t+'.KQ'];
+    for(const s of cands){
+      try{ const q=await yahooQuote(s); h._ysym=s; q.via='Yahoo '+s; return q; }
+      catch(e){ errs.push(e); }
+    }
+    try{ const q=await stooqQuote(t.toLowerCase()+'.kr'); q.via='Stooq'; return q; }
+    catch(e){ errs.push(e); }
+  }else{
+    // 미국: Stooq .us → Yahoo 폴백
+    try{ const q=await stooqQuote(t.toLowerCase()+'.us'); q.via='Stooq'; return q; }
+    catch(e){ errs.push(e); }
+    try{ const q=await yahooQuote(t); q.via='Yahoo'; return q; }
+    catch(e){ errs.push(e); }
+  }
+  throw new Error('all sources failed: '+errs.map(e=>e.message).join(' / '));
+}
+// 환율(USD/KRW): Stooq → Yahoo(KRW=X) 폴백
+async function fetchRateQuote(){
+  try{ return await stooqQuote('usdkrw'); }
+  catch(e){ return await yahooQuote('KRW=X'); }
 }
 
 let fetching=false;
@@ -618,7 +661,7 @@ async function fetchQuotes(silent){
   if(fetching) return; fetching=true;
   const btn=document.getElementById('fetchBtn');
   const st=document.getElementById('fetchStatus');
-  const targets=state.holdings.map((h,i)=>({i,h,sym:stooqSymbol(h)})).filter(x=>x.sym);
+  const targets=state.holdings.map((h,i)=>({i,h})).filter(x=>(x.h.tk||'').trim());
   btn.disabled=true; st.className='fetch-status'; st.textContent='';
   if(!targets.length){ st.textContent='티커가 입력된 종목이 없습니다.'; btn.disabled=false; fetching=false; return; }
 
@@ -628,18 +671,18 @@ async function fetchQuotes(silent){
 
   await Promise.allSettled(targets.map(async t=>{
     try{
-      const q=await fetchOneQuote(t.sym);
+      const q=await fetchOneQuote(state.holdings[t.i]);
       state.holdings[t.i].price=q.price;
-      state.holdings[t.i]._q={t:Date.now(), src:q.date+' '+(q.time||'')};
+      state.holdings[t.i]._q={t:Date.now(), via:q.via||''};
       ok++;
-    }catch(e){ failed.push((t.h.name||t.h.tk||t.sym)); }
+    }catch(e){ failed.push((t.h.name||t.h.tk)); }
     finally{ done++; setProg(); }
   }));
 
   // 환율 갱신(옵션)
   let rateMsg='';
   if(document.getElementById('fetchRate').checked){
-    try{ const q=await fetchOneQuote('usdkrw'); state.rate=q.price; rateMsg=` · 환율 ${Math.round(q.price).toLocaleString('ko-KR')}원`; }
+    try{ const q=await fetchRateQuote(); state.rate=q.price; rateMsg=` · 환율 ${Math.round(q.price).toLocaleString('ko-KR')}원`; }
     catch(e){ rateMsg=' · 환율 갱신 실패'; }
   }
 
@@ -680,7 +723,7 @@ document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSearch(); })
 
 // Yahoo 심볼 → {market, ticker}. .KS/.KQ=한국, 접미사 없음=미국. 그 외 거래소는 제외.
 function mapYahooSymbol(sym){
-  if(/\.(KS|KQ)$/i.test(sym)) return {market:'KR', ticker:sym.replace(/\.(KS|KQ)$/i,'')};
+  if(/\.(KS|KQ)$/i.test(sym)) return {market:'KR', ticker:sym.replace(/\.(KS|KQ)$/i,''), ysym:sym.toUpperCase()};
   if(!/\./.test(sym))        return {market:'US', ticker:sym};
   return null; // 미지원 거래소(.T, .L, .HK 등)
 }
@@ -709,7 +752,9 @@ async function doSearch(q){
   }
 }
 function pickResult(m, name){
-  state.holdings.push({market:m.market, acc:ACCOUNTS[0], type:TYPES[0], name:name||m.ticker, tk:m.ticker, buy:0, price:0, qty:0});
+  const h={market:m.market, acc:ACCOUNTS[0], type:TYPES[0], name:name||m.ticker, tk:m.ticker, buy:0, price:0, qty:0};
+  if(m.ysym) h._ysym=m.ysym; // 검색으로 확인된 정확한 Yahoo 접미사 캐시
+  state.holdings.push(h);
   save(); render(); closeSearch();
   toast(`${name||m.ticker} (${m.ticker} · ${m.market==='KR'?'한국장':'미국장'}) 추가됨 — 매입금·수량을 입력한 뒤 '시세 불러오기'를 눌러보세요.`);
 }
