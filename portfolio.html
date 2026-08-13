@@ -105,6 +105,24 @@
     padding:12px 18px;border-radius:12px;box-shadow:0 10px 30px var(--shadow);
     font-size:13px;max-width:90vw;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+  .modal-bg{position:fixed;inset:0;z-index:60;background:rgba(6,10,18,.66);
+    display:none;align-items:flex-start;justify-content:center;padding:8vh 16px}
+  .modal-bg.show{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    width:100%;max-width:520px;padding:20px 22px;box-shadow:0 20px 50px var(--shadow)}
+  .modal-head{display:flex;align-items:center;justify-content:space-between}
+  .modal-head h3{font-size:17px}
+  .modal-desc{font-size:12.5px;color:var(--muted);margin:6px 0 12px}
+  #searchInput{text-align:left;font-size:15px;padding:11px 13px}
+  .search-results{margin-top:10px;max-height:44vh;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+  .sr-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);
+    border-radius:10px;background:var(--panel2);cursor:pointer;text-align:left}
+  .sr-item:hover{border-color:var(--accent);background:#1a2440}
+  .sr-tk{font-weight:700;font-size:13px;min-width:74px}
+  .sr-name{font-size:12.5px;color:#c6d0e6;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sr-mkt{font-size:11px;padding:2px 8px;border-radius:999px;background:#2a3550;color:var(--muted)}
+  .sr-mkt.kr{background:#4a2530;color:#ffb3bd}.sr-mkt.us{background:#20365e;color:#a9c6ff}
+  .sr-msg{font-size:13px;color:var(--muted);padding:14px 4px;text-align:center}
   footer{text-align:center;color:var(--muted);font-size:12px;margin-top:30px}
   .hint{font-size:11.5px;color:var(--muted);margin-top:8px}
   @media(max-width:640px){
@@ -137,9 +155,16 @@
     <h2><span class="dot"></span>보유 종목 현황</h2>
     <p class="desc">한국장·미국장을 분리해 관리합니다. 종목·매입금·시세·수량을 입력하면 평가금·손익·수익률이 자동 계산됩니다. (직접입력2번 종목현황 시트)</p>
     <div class="toolbar">
+      <button class="btn-add" style="background:#7c5cff" onclick="openSearch()">🔍 종목 검색·추가</button>
       <button class="btn-add" id="fetchBtn" onclick="fetchQuotes()">🔄 온라인 시세 불러오기</button>
       <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);cursor:pointer">
         <input type="checkbox" id="fetchRate" style="width:auto" checked> 환율도 갱신</label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);cursor:pointer">
+        <input type="checkbox" id="autoRefresh" style="width:auto" onchange="applyAutoRefresh()"> 자동 갱신</label>
+      <select id="autoMin" style="width:auto" onchange="applyAutoRefresh()">
+        <option value="1">1분</option><option value="3">3분</option>
+        <option value="5" selected>5분</option><option value="10">10분</option>
+      </select>
       <span id="fetchStatus" class="fetch-status"></span>
       <button class="btn-ghost" onclick="resetAll()">전체 초기화</button>
       <div class="rate-box">환율(원/$) <input type="number" id="rate" step="0.001" oninput="saveAndRender()"></div>
@@ -255,6 +280,17 @@
   </section>
 
 </div>
+
+<div id="searchModal" class="modal-bg" onclick="if(event.target===this)closeSearch()">
+  <div class="modal">
+    <div class="modal-head"><h3>🔍 종목 검색</h3><button class="btn-del" onclick="closeSearch()">✕</button></div>
+    <p class="modal-desc">종목명 또는 티커로 검색하세요. 선택하면 종목명·티커·시장(한국/미국)이 자동 입력됩니다.</p>
+    <input id="searchInput" placeholder="예: 삼성전자, NVDY, apple, kodex" autocomplete="off">
+    <div id="searchResults" class="search-results"></div>
+    <p class="hint">※ Yahoo Finance 검색을 공용 프록시로 조회합니다. 영문 미국 종목이 가장 잘 검색되며, 한글 종목명은 결과가 부정확할 수 있습니다. 그럴 땐 티커(예: 005930)로 검색해 보세요.</p>
+  </div>
+</div>
+
 <div id="toast" class="toast"></div>
 
 <script>
@@ -281,7 +317,9 @@ let state = load() || {
     {market:"US",acc:"일반계좌",type:"커버드콜",name:"NVDY",tk:"NVDY",buy:0,price:0,qty:0},
   ],
   dividends: DEFAULT_DIVS.map(x=>({...x})),
-  history: []
+  history: [],
+  autoRefresh: false,
+  autoMin: 5
 };
 
 /* 이전 버전 저장 데이터 호환 */
@@ -576,7 +614,7 @@ async function fetchOneQuote(sym){
 }
 
 let fetching=false;
-async function fetchQuotes(){
+async function fetchQuotes(silent){
   if(fetching) return; fetching=true;
   const btn=document.getElementById('fetchBtn');
   const st=document.getElementById('fetchStatus');
@@ -585,7 +623,7 @@ async function fetchQuotes(){
   if(!targets.length){ st.textContent='티커가 입력된 종목이 없습니다.'; btn.disabled=false; fetching=false; return; }
 
   let done=0, ok=0; const failed=[];
-  const setProg=()=>{ st.textContent=`불러오는 중… ${done}/${targets.length}`; };
+  const setProg=()=>{ st.textContent=`${silent?'자동 갱신 중':'불러오는 중'}… ${done}/${targets.length}`; };
   setProg();
 
   await Promise.allSettled(targets.map(async t=>{
@@ -610,10 +648,70 @@ async function fetchQuotes(){
   btn.disabled=false; fetching=false;
 
   st.className='fetch-status '+(failed.length?'err':'ok');
-  st.textContent=`완료: 성공 ${ok} / 실패 ${failed.length}${rateMsg}`;
-  let msg=`시세 갱신 완료 — 성공 ${ok}개, 실패 ${failed.length}개${rateMsg}`;
-  if(failed.length) msg+=`\n실패: ${failed.join(', ')}\n(해당 종목은 기존 값을 유지합니다. 티커 표기를 확인하거나 잠시 후 다시 시도하세요.)`;
-  toast(msg);
+  st.textContent=`${silent?'자동':'수동'} 갱신 완료: 성공 ${ok} / 실패 ${failed.length}${rateMsg}`;
+  if(!silent){
+    let msg=`시세 갱신 완료 — 성공 ${ok}개, 실패 ${failed.length}개${rateMsg}`;
+    if(failed.length) msg+=`\n실패: ${failed.join(', ')}\n(해당 종목은 기존 값을 유지합니다. 티커 표기를 확인하거나 잠시 후 다시 시도하세요.)`;
+    toast(msg);
+  }
+}
+
+/* ---------- ② 시세 자동 새로고침 ---------- */
+let autoTimer=null;
+function applyAutoRefresh(){
+  const cb=document.getElementById('autoRefresh'), sel=document.getElementById('autoMin');
+  state.autoRefresh=cb.checked; state.autoMin=Number(sel.value)||5; save();
+  if(autoTimer){ clearInterval(autoTimer); autoTimer=null; }
+  if(state.autoRefresh){
+    autoTimer=setInterval(()=>{ if(!fetching && !document.hidden) fetchQuotes(true); }, state.autoMin*60000);
+    fetchQuotes(true); // 켜는 즉시 1회 갱신
+  }
+}
+
+/* ---------- ① 종목 검색 (Yahoo Finance) ---------- */
+let searchTimer=null;
+function openSearch(){
+  document.getElementById('searchModal').classList.add('show');
+  const inp=document.getElementById('searchInput'); inp.value=''; inp.focus();
+  document.getElementById('searchResults').innerHTML='';
+}
+function closeSearch(){ document.getElementById('searchModal').classList.remove('show'); }
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeSearch(); });
+
+// Yahoo 심볼 → {market, ticker}. .KS/.KQ=한국, 접미사 없음=미국. 그 외 거래소는 제외.
+function mapYahooSymbol(sym){
+  if(/\.(KS|KQ)$/i.test(sym)) return {market:'KR', ticker:sym.replace(/\.(KS|KQ)$/i,'')};
+  if(!/\./.test(sym))        return {market:'US', ticker:sym};
+  return null; // 미지원 거래소(.T, .L, .HK 등)
+}
+async function doSearch(q){
+  const box=document.getElementById('searchResults');
+  if(!q || q.trim().length<1){ box.innerHTML=''; return; }
+  box.innerHTML='<div class="sr-msg">검색 중…</div>';
+  try{
+    const url=`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q.trim())}&quotesCount=12&newsCount=0&listsCount=0`;
+    const text=await fetchViaProxies(url);
+    const data=JSON.parse(text);
+    const items=(data.quotes||[])
+      .filter(it=>it.symbol && (it.quoteType==='EQUITY'||it.quoteType==='ETF'))
+      .map(it=>({...it, m:mapYahooSymbol(it.symbol)}))
+      .filter(it=>it.m);
+    if(!items.length){ box.innerHTML='<div class="sr-msg">결과가 없습니다. 티커(예: 005930)로 다시 검색해 보세요.</div>'; return; }
+    box.innerHTML=items.map((it,idx)=>{
+      const nm=(it.shortname||it.longname||it.symbol).replace(/"/g,'&quot;');
+      return `<div class="sr-item" onclick='pickResult(${JSON.stringify(it.m)}, ${JSON.stringify(nm)})'>
+        <span class="sr-tk">${it.m.ticker}</span>
+        <span class="sr-name">${nm}</span>
+        <span class="sr-mkt ${it.m.market.toLowerCase()}">${it.m.market==='KR'?'🇰🇷 한국':'🇺🇸 미국'}</span></div>`;
+    }).join('');
+  }catch(e){
+    box.innerHTML='<div class="sr-msg">검색에 실패했습니다. 인터넷 연결 또는 잠시 후 다시 시도하세요.</div>';
+  }
+}
+function pickResult(m, name){
+  state.holdings.push({market:m.market, acc:ACCOUNTS[0], type:TYPES[0], name:name||m.ticker, tk:m.ticker, buy:0, price:0, qty:0});
+  save(); render(); closeSearch();
+  toast(`${name||m.ticker} (${m.ticker} · ${m.market==='KR'?'한국장':'미국장'}) 추가됨 — 매입금·수량을 입력한 뒤 '시세 불러오기'를 눌러보세요.`);
 }
 function toast(msg){
   const el=document.getElementById('toast');
@@ -622,7 +720,17 @@ function toast(msg){
 }
 function failedHint(m){ return m.includes('실패:')?7000:3500; }
 
+/* ---------- 초기화 ---------- */
 render();
+// 검색 입력 디바운스
+document.getElementById('searchInput').addEventListener('input', e=>{
+  clearTimeout(searchTimer); const q=e.target.value;
+  searchTimer=setTimeout(()=>doSearch(q), 350);
+});
+// 자동 갱신 상태 복원
+document.getElementById('autoRefresh').checked = !!state.autoRefresh;
+document.getElementById('autoMin').value = String(state.autoMin||5);
+if(state.autoRefresh) applyAutoRefresh();
 </script>
 </body>
 </html>
