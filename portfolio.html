@@ -59,6 +59,11 @@
   .btn-ghost:hover{border-color:var(--accent);color:var(--txt)}
   .rate-box{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
   .rate-box input{width:100px}
+  .mkt-head{display:flex;align-items:center;gap:9px;font-size:15px;font-weight:700;margin:6px 0 10px}
+  .mkt-head .flag{font-size:18px}
+  .mkt-head .mkt-sub{font-size:12px;font-weight:500;color:var(--muted)}
+  .btn-add.sm{margin-left:auto;padding:6px 12px;font-size:12px}
+  .btn-add.kr{background:#c0392b}.btn-add.us{background:#2d6cdf}
 
   .tbl-scroll{overflow-x:auto;border-radius:12px;border:1px solid var(--line)}
   table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
@@ -125,14 +130,42 @@
   <!-- 보유 종목 -->
   <section>
     <h2><span class="dot"></span>보유 종목 현황</h2>
-    <p class="desc">종목명·티커·매입금·현재 시세·수량을 입력하면 평가금·손익·수익률이 자동 계산됩니다. (직접입력2번 종목현황 시트)</p>
+    <p class="desc">한국장·미국장을 분리해 관리합니다. 종목·매입금·시세·수량을 입력하면 평가금·손익·수익률이 자동 계산됩니다. (직접입력2번 종목현황 시트)</p>
     <div class="toolbar">
-      <button class="btn-add" onclick="addHolding()">+ 종목 추가</button>
       <button class="btn-ghost" onclick="resetAll()">전체 초기화</button>
       <div class="rate-box">환율(원/$) <input type="number" id="rate" step="0.001" oninput="saveAndRender()"></div>
     </div>
+
+    <!-- 한국장 -->
+    <div class="mkt-head"><span class="flag">🇰🇷</span> 한국장 <span class="mkt-sub">시세 · 매입금 모두 원(₩) 단위</span>
+      <button class="btn-add sm kr" onclick="addHolding('KR')">+ 한국 종목</button></div>
     <div class="tbl-scroll">
-      <table id="hTable">
+      <table>
+        <thead>
+          <tr>
+            <th class="tl">계좌구분</th><th class="tl">주식종류</th><th class="tl">종목명</th><th class="tl">티커</th>
+            <th>매입금(원)</th><th>시세(원)</th><th>수량</th>
+            <th>평가금(원)</th><th>손익(원)</th>
+            <th>누적배당(원)</th><th>수익률</th><th>회수율</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="krBody"></tbody>
+        <tfoot>
+          <tr>
+            <td class="tl" colspan="4">한국장 소계</td>
+            <td class="num" id="krBuy">0</td><td></td><td></td>
+            <td class="num" id="krEval">0</td><td class="num" id="krPL">0</td><td class="num" id="krDiv">0</td>
+            <td class="num" id="krRet">-</td><td class="num" id="krRecov">-</td><td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <!-- 미국장 -->
+    <div class="mkt-head" style="margin-top:22px"><span class="flag">🇺🇸</span> 미국장 <span class="mkt-sub">시세는 달러($) 입력 · 환율 적용해 원화 환산</span>
+      <button class="btn-add sm us" onclick="addHolding('US')">+ 미국 종목</button></div>
+    <div class="tbl-scroll">
+      <table>
         <thead>
           <tr>
             <th class="tl">계좌구분</th><th class="tl">주식종류</th><th class="tl">종목명</th><th class="tl">티커</th>
@@ -141,19 +174,19 @@
             <th>누적배당(원)</th><th>수익률</th><th>회수율</th><th></th>
           </tr>
         </thead>
-        <tbody id="hBody"></tbody>
+        <tbody id="usBody"></tbody>
         <tfoot>
           <tr>
-            <td class="tl" colspan="4">종합</td>
-            <td class="num" id="fBuy">0</td><td></td><td></td>
-            <td class="num" id="fEvalUsd">0</td><td class="num" id="fEvalKrw">0</td>
-            <td class="num" id="fPL">0</td><td class="num" id="fDiv">0</td>
-            <td class="num" id="fRet">-</td><td class="num" id="fRecov">-</td><td></td>
+            <td class="tl" colspan="4">미국장 소계</td>
+            <td class="num" id="usBuy">0</td><td></td><td></td>
+            <td class="num" id="usEvalUsd">0</td><td class="num" id="usEval">0</td><td class="num" id="usPL">0</td><td class="num" id="usDiv">0</td>
+            <td class="num" id="usRet">-</td><td class="num" id="usRecov">-</td><td></td>
           </tr>
         </tfoot>
       </table>
     </div>
-    <p class="hint">※ 손익 = 평가금(원) − 매입금 · 수익률 = 손익 / 매입금 · 회수율 = 누적배당 / 매입금 · 누적배당은 아래 배당금 내역에서 종목명 기준으로 자동 합산됩니다.</p>
+
+    <p class="hint">※ 손익 = 평가금(원) − 매입금 · 수익률 = 손익 / 매입금 · 회수율 = 누적배당 / 매입금 · <b>한국장은 시세를 원, 미국장은 시세를 달러로 입력</b>합니다 · 누적배당은 배당 내역에서 종목명 기준으로 자동 합산됩니다.</p>
   </section>
 
   <!-- 배당금 -->
@@ -244,12 +277,15 @@ let state = load() || {
   rate: 1427.885,
   tax: 0.154,
   holdings: [
-    {acc:"ISA",type:"배당주식",name:"kodex 배당커버드",tk:"441640",buy:0,price:0,qty:0},
-    {acc:"연금저축",type:"커버드콜",name:"kodex 미성장커버드",tk:"0144L0",buy:0,price:0,qty:0},
-    {acc:"일반계좌",type:"커버드콜",name:"NVDY",tk:"NVDY",buy:0,price:0,qty:0},
+    {market:"KR",acc:"ISA",type:"배당주식",name:"kodex 배당커버드",tk:"441640",buy:0,price:0,qty:0},
+    {market:"KR",acc:"연금저축",type:"커버드콜",name:"kodex 미성장커버드",tk:"0144L0",buy:0,price:0,qty:0},
+    {market:"US",acc:"일반계좌",type:"커버드콜",name:"NVDY",tk:"NVDY",buy:0,price:0,qty:0},
   ],
   dividends: DEFAULT_DIVS.map(x=>({...x}))
 };
+
+/* 이전 버전 저장 데이터 호환: market 없으면 티커로 추정(숫자로 시작 → 한국장) */
+state.holdings.forEach(h=>{ if(!h.market) h.market = /^[0-9]/.test((h.tk||'').trim()) ? 'KR' : 'US'; });
 
 function save(){localStorage.setItem('portfolioSheet', JSON.stringify(state));}
 function load(){try{return JSON.parse(localStorage.getItem('portfolioSheet'));}catch(e){return null;}}
@@ -266,6 +302,56 @@ function divByName(name){
     .reduce((s,d)=> s + (Number(d.gross)||0)*(1-state.tax), 0);
 }
 
+/* ---------- 시장별 보유종목 렌더 ---------- */
+function renderMarket(market){
+  const isKR = market==='KR';
+  const body = document.getElementById(isKR?'krBody':'usBody'); body.innerHTML='';
+  let sBuy=0,sUsd=0,sKrw=0,sDiv=0;
+  state.holdings.forEach((h,i)=>{
+    if((h.market||'US')!==market) return;
+    const price=Number(h.price)||0, qty=Number(h.qty)||0, buy=Number(h.buy)||0;
+    let evalKrw, evalUsd;
+    if(isKR){ evalKrw = price*qty; evalUsd = Number(state.rate)>0 ? evalKrw/Number(state.rate) : 0; }
+    else    { evalUsd = price*qty; evalKrw = evalUsd*Number(state.rate); }
+    const pl = evalKrw - buy;
+    const div = divByName(h.name);
+    const ret = buy>0 ? pl/buy : null;
+    const recov = buy>0 ? div/buy : null;
+    sBuy+=buy; sUsd+=evalUsd; sKrw+=evalKrw; sDiv+=div;
+
+    const common = `
+      <td class="tl">${selCell(ACCOUNTS,h.acc,'acc',i)}</td>
+      <td class="tl">${selCell(TYPES,h.type,'type',i)}</td>
+      <td class="tl">${inp(h.name,'name',i,'text','tl',150)}</td>
+      <td class="tl">${inp(h.tk,'tk',i,'text','tl',90)}</td>
+      <td>${inp(h.buy,'buy',i,'number')}</td>
+      <td>${inp(h.price,'price',i,'number')}</td>
+      <td>${inp(h.qty,'qty',i,'number')}</td>`;
+    const tail = `
+      <td class="num ${clsPL(pl)}">${won(pl)}</td>
+      <td class="calc num">${won(div)}</td>
+      <td class="num ${ret==null?'':clsPL(ret)}">${ret==null?'-':pct(ret)}</td>
+      <td class="num">${recov==null?'-':(recov*100).toFixed(1)+'%'}</td>
+      <td><button class="btn-del" onclick="delHolding(${i})">✕</button></td>`;
+    const tr=document.createElement('tr');
+    tr.innerHTML = common
+      + (isKR ? `<td class="calc num">${won(evalKrw)}</td>`
+              : `<td class="calc num">${usd(evalUsd)}</td><td class="calc num">${won(evalKrw)}</td>`)
+      + tail;
+    body.appendChild(tr);
+  });
+
+  const sPL=sKrw-sBuy, p=isKR?'kr':'us';
+  document.getElementById(p+'Buy').textContent=won(sBuy);
+  if(!isKR) document.getElementById('usEvalUsd').textContent=usd(sUsd);
+  document.getElementById(p+'Eval').textContent=won(sKrw);
+  const plc=document.getElementById(p+'PL'); plc.textContent=won(sPL); plc.className='num '+clsPL(sPL);
+  document.getElementById(p+'Div').textContent=won(sDiv);
+  document.getElementById(p+'Ret').textContent=sBuy>0?pct(sPL/sBuy):'-';
+  document.getElementById(p+'Recov').textContent=sBuy>0?(sDiv/sBuy*100).toFixed(1)+'%':'-';
+  return {buy:sBuy,usd:sUsd,krw:sKrw,div:sDiv};
+}
+
 /* ---------- 렌더 ---------- */
 function render(){
   document.getElementById('today').textContent = new Date().toISOString().slice(0,10);
@@ -273,46 +359,11 @@ function render(){
   document.getElementById('taxRate').value = state.tax;
   document.getElementById('rateDisp').textContent = Number(state.rate).toLocaleString('ko-KR');
 
-  // holdings
-  const hb = document.getElementById('hBody'); hb.innerHTML='';
-  let tBuy=0,tUsd=0,tKrw=0,tDiv=0;
-  state.holdings.forEach((h,i)=>{
-    const evalUsd = (Number(h.price)||0)*(Number(h.qty)||0);
-    const evalKrw = evalUsd*Number(state.rate);
-    const buy = Number(h.buy)||0;
-    const pl = evalKrw - buy;              // +이익 / -손실
-    const div = divByName(h.name);
-    const ret = buy>0 ? pl/buy : null;
-    const recov = buy>0 ? div/buy : null;
-    tBuy+=buy; tUsd+=evalUsd; tKrw+=evalKrw; tDiv+=div;
-
-    const tr=document.createElement('tr');
-    tr.innerHTML = `
-      <td class="tl">${selCell(ACCOUNTS,h.acc,'acc',i)}</td>
-      <td class="tl">${selCell(TYPES,h.type,'type',i)}</td>
-      <td class="tl">${inp(h.name,'name',i,'text','tl',160)}</td>
-      <td class="tl">${inp(h.tk,'tk',i,'text','tl',90)}</td>
-      <td>${inp(h.buy,'buy',i,'number')}</td>
-      <td>${inp(h.price,'price',i,'number')}</td>
-      <td>${inp(h.qty,'qty',i,'number')}</td>
-      <td class="calc num">${usd(evalUsd)}</td>
-      <td class="calc num">${won(evalKrw)}</td>
-      <td class="num ${clsPL(pl)}">${won(pl)}</td>
-      <td class="calc num">${won(div)}</td>
-      <td class="num ${ret==null?'':clsPL(ret)}">${ret==null?'-':pct(ret)}</td>
-      <td class="num">${recov==null?'-':(recov*100).toFixed(1)+'%'}</td>
-      <td><button class="btn-del" onclick="delHolding(${i})">✕</button></td>`;
-    hb.appendChild(tr);
-  });
+  // holdings — 시장별로 분리 렌더
+  const kr = renderMarket('KR');
+  const us = renderMarket('US');
+  const tBuy=kr.buy+us.buy, tUsd=kr.usd+us.usd, tKrw=kr.krw+us.krw, tDiv=kr.div+us.div;
   const tPL=tKrw-tBuy;
-  document.getElementById('fBuy').textContent=won(tBuy);
-  document.getElementById('fEvalUsd').textContent=usd(tUsd);
-  document.getElementById('fEvalKrw').textContent=won(tKrw);
-  document.getElementById('fPL').textContent=won(tPL);
-  document.getElementById('fPL').className='num '+clsPL(tPL);
-  document.getElementById('fDiv').textContent=won(tDiv);
-  document.getElementById('fRet').textContent=tBuy>0?pct(tPL/tBuy):'-';
-  document.getElementById('fRecov').textContent=tBuy>0?(tDiv/tBuy*100).toFixed(1)+'%':'-';
 
   // dividends
   const db=document.getElementById('dBody'); db.innerHTML='';
@@ -359,7 +410,7 @@ function selCellD(opts,v,f,i){return `<select onchange="updD(${i},'${f}',this.va
 /* ---------- 이벤트 ---------- */
 function upd(i,f,v){state.holdings[i][f]=v;saveAndRender();}
 function updD(i,f,v){state.dividends[i][f]=v;saveAndRender();}
-function addHolding(){state.holdings.push({acc:ACCOUNTS[0],type:TYPES[0],name:"",tk:"",buy:0,price:0,qty:0});saveAndRender();}
+function addHolding(market){state.holdings.push({market:market||'US',acc:ACCOUNTS[0],type:TYPES[0],name:"",tk:"",buy:0,price:0,qty:0});saveAndRender();}
 function delHolding(i){state.holdings.splice(i,1);saveAndRender();}
 function addDividend(){state.dividends.push({y:YEARS[0],m:MONTHS[new Date().getMonth()],d:new Date().toISOString().slice(0,10),name:"",tk:"",gross:0});saveAndRender();}
 function delDividend(i){state.dividends.splice(i,1);saveAndRender();}
